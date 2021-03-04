@@ -1,0 +1,27 @@
+modLoader = "javafml"
+loaderVersion = "[36,)"
+license = "All rights reserved" # Want to make your mod open source? Check out https://choosealicense.com/!
+
+[[mods]]
+modId = "lithium"
+
+version = "${version}"
+displayName = "Lithium"
+
+description = '''
+Don't use this, Max only makes cursed things.
+'''
+
+[[dependencies.lithium]]
+modId = "forge"
+mandatory = true
+versionRange = "[36,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.lithium]]
+modId = "minecraft"
+mandatory = true
+versionRange = "[1.16.5,1.17)"
+ordering = "NONE"
+side = "BOTH"

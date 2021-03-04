@@ -19,7 +19,8 @@ public abstract class EntityMixin {
     @Shadow
     protected abstract int getBurningDuration();
 
-    @Redirect(
+    // TODO: Re-evaluate if this is needed because forge strips this method
+    /*@Redirect(
             method = "move",
             at = @At(
                     value = "INVOKE",
@@ -33,5 +34,5 @@ public abstract class EntityMixin {
         }
 
         return world.method_29556(box);
-    }
+    }*/
 }

@@ -51,7 +51,7 @@ public class EntityShapeContextMixin {
             method = "<init>(Lnet/minecraft/entity/Entity;)V",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/block/EntityShapeContext;<init>(ZDLnet/minecraft/item/Item;Ljava/util/function/Predicate;)V",
+                    target = "Lnet/minecraft/block/EntityShapeContext;<init>(Lnet/minecraft/entity/Entity;ZDLnet/minecraft/item/Item;Ljava/util/function/Predicate;)V",
                     shift = At.Shift.AFTER
             )
     )

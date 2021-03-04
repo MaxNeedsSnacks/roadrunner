@@ -1,14 +1,13 @@
 package me.jellysquid.mods.lithium.common.config;
 
-import net.fabricmc.loader.api.FabricLoader;
-import net.fabricmc.loader.api.ModContainer;
-import net.fabricmc.loader.api.metadata.CustomValue;
-import net.fabricmc.loader.api.metadata.CustomValue.CvType;
-import net.fabricmc.loader.api.metadata.ModMetadata;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.Writer;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -163,7 +162,7 @@ public class LithiumConfig {
         }
     }
 
-    private void applyModOverrides() {
+    /*private void applyModOverrides() {
         for (ModContainer container : FabricLoader.getInstance().getAllMods()) {
             ModMetadata meta = container.getMetadata();
 
@@ -205,7 +204,7 @@ public class LithiumConfig {
         if (!enabled || option.isEnabled() || option.getDefiningMods().isEmpty()) {
             option.addModOverride(enabled, meta.getId());
         }
-    }
+    }*/
 
     /**
      * Returns the effective option for the specified class name. This traverses the package path of the given mixin
@@ -265,7 +264,7 @@ public class LithiumConfig {
             }
         }
 
-        config.applyModOverrides();
+        // config.applyModOverrides();
 
         return config;
     }

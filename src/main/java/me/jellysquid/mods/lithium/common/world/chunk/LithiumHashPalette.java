@@ -3,20 +3,20 @@ package me.jellysquid.mods.lithium.common.world.chunk;
 import it.unimi.dsi.fastutil.HashCommon;
 import it.unimi.dsi.fastutil.objects.Reference2IntMap;
 import it.unimi.dsi.fastutil.objects.Reference2IntOpenHashMap;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.util.collection.IdList;
 import net.minecraft.world.chunk.Palette;
 import net.minecraft.world.chunk.PaletteResizeListener;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.Arrays;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-import static it.unimi.dsi.fastutil.Hash.FAST_LOAD_FACTOR;
+import static it.unimi.dsi.fastutil.Hash.*;
 
 /**
  * Generally provides better performance over the vanilla {@link net.minecraft.world.chunk.BiMapPalette} when calling
@@ -117,7 +117,7 @@ public class LithiumHashPalette<T> implements Palette<T> {
     }
 
     @Override
-    @Environment(EnvType.CLIENT)
+    @OnlyIn(Dist.CLIENT)
     public void fromPacket(PacketByteBuf buf) {
         this.clear();
 
