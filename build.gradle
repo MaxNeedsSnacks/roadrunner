@@ -1,7 +1,7 @@
 import net.fabricmc.loom.task.RemapJarTask
 
 plugins {
-    id 'forgified-fabric-loom' version '0.6.72'
+    id 'forgified-fabric-loom' version '0.6.78'
     id 'maven-publish'
 }
 
@@ -46,12 +46,21 @@ sourceSets {
     }
 }
 
+repositories {
+    maven {
+        url "https://www.cursemaven.com"
+    }
+}
+
 dependencies {
     //to change the versions see the gradle.properties file
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
     mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
 
     forge "net.minecraftforge:forge:${project.minecraft_version}-${project.forge_version}"
+
+    modImplementation "curse.maven:abnormals-core-382216:3218058"
+    modImplementation "curse.maven:upgrade-aquatic-326895:3171113"
 }
 
 
