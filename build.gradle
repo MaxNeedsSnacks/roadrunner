@@ -1,7 +1,7 @@
 import net.fabricmc.loom.task.RemapJarTask
 
 plugins {
-    id 'forgified-fabric-loom' version '0.6.78'
+    id 'dev.architectury.loom' version '0.7.2-SNAPSHOT'
     id 'maven-publish'
 }
 
@@ -59,6 +59,8 @@ dependencies {
 
     forge "net.minecraftforge:forge:${project.minecraft_version}-${project.forge_version}"
 
+    // these were both added to debug a weird crash
+    // with thrashers and ai.nearby_entity_tracking
     modImplementation "curse.maven:abnormals-core-382216:3218058"
     modImplementation "curse.maven:upgrade-aquatic-326895:3171113"
 }
