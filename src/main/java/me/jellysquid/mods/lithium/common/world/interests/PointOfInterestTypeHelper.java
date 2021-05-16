@@ -2,6 +2,7 @@ package me.jellysquid.mods.lithium.common.world.interests;
 
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ReferenceArraySet;
+import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import me.jellysquid.mods.lithium.common.LithiumMod;
 import me.jellysquid.mods.lithium.mixin.ai.poi.fast_init.PointOfInterestTypeAccess;
 import net.minecraft.block.BlockState;
@@ -35,6 +36,12 @@ public class PointOfInterestTypeHelper {
         blockstatePOIMap = new Reference2ReferenceOpenHashMap<>(blockstatePOIMap);
         PointOfInterestTypeAccess.setBlockStateToPointOfInterestType(blockstatePOIMap);
 
-        TYPES = new ReferenceArraySet<>(blockstatePOIMap.keySet());
+        // This threshold is not based on anything but gut feeling, if anyone has actual profiling data it should be
+        // adjusted
+        if (blockstatePOIMap.size() < 20) {
+            TYPES = new ReferenceArraySet<>(blockstatePOIMap.keySet());
+        } else {
+            TYPES = new ReferenceOpenHashSet<>(blockstatePOIMap.keySet());
+        }
     }
 }
