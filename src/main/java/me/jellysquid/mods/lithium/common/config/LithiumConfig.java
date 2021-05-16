@@ -32,10 +32,9 @@ public class LithiumConfig {
         this.addMixinRule("ai.nearby_entity_tracking", true);
         this.addMixinRule("ai.nearby_entity_tracking.goals", true);
         this.addMixinRule("ai.pathing", true);
-        // FIXME: find out why these break on forge
         this.addMixinRule("ai.poi", true);
-        this.addMixinRule("ai.poi.fast_init", false);
-        this.addMixinRule("ai.poi.fast_retrieval", false);
+        this.addMixinRule("ai.poi.fast_init", true);
+        this.addMixinRule("ai.poi.fast_retrieval", true);
         this.addMixinRule("ai.raid", true);
         this.addMixinRule("ai.task", true);
 
