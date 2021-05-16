@@ -132,3 +132,9 @@ task remapApiJar(type: RemapJarTask, dependsOn: apiJar) {
 }
 
 build.dependsOn remapApiJar
+
+// Used to temporarily add mods to the workspace for debugging
+def customGradle = rootProject.file('custom.gradle');
+if (customGradle.exists()) {
+    apply from: customGradle;
+}
