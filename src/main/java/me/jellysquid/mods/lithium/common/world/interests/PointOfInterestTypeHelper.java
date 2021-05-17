@@ -3,7 +3,7 @@ package me.jellysquid.mods.lithium.common.world.interests;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ReferenceArraySet;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
-import me.jellysquid.mods.lithium.common.LithiumMod;
+import me.jellysquid.mods.lithium.common.RoadRunner;
 import me.jellysquid.mods.lithium.mixin.ai.poi.fast_init.PointOfInterestTypeAccess;
 import net.minecraft.block.BlockState;
 import net.minecraft.world.chunk.ChunkSection;
@@ -19,7 +19,7 @@ import java.util.Set;
 /**
  * Replaces the type of the blockstate to POI map with a faster collection type which uses reference equality.
  */
-@EventBusSubscriber(modid = LithiumMod.MODID, bus = Bus.MOD)
+@EventBusSubscriber(modid = RoadRunner.MODID, bus = Bus.MOD)
 public class PointOfInterestTypeHelper {
     private static Set<BlockState> TYPES;
 

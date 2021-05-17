@@ -16,14 +16,14 @@ import java.util.Properties;
  * Documentation of these options: https://github.com/jellysquid3/lithium-fabric/wiki/Configuration-File
  */
 @SuppressWarnings("CanBeFinal")
-public class LithiumConfig {
-    private static final Logger LOGGER = LogManager.getLogger("LithiumConfig");
+public class RoadRunnerConfig {
+    private static final Logger LOGGER = LogManager.getLogger("RoadRunner Config");
 
-    private static final String JSON_KEY_LITHIUM_OPTIONS = "lithium:options";
+    // private static final String JSON_KEY_LITHIUM_OPTIONS = "lithium:options";
 
     private final Map<String, Option> options = new HashMap<>();
 
-    private LithiumConfig() {
+    private RoadRunnerConfig() {
         // Defines the default rules which can be configured by the user or other mods.
         // You must manually add a rule for any new mixins not covered by an existing package rule.
 
@@ -243,8 +243,8 @@ public class LithiumConfig {
      * Loads the configuration file from the specified location. If it does not exist, a new configuration file will be
      * created. The file on disk will then be updated to include any new options.
      */
-    public static LithiumConfig load(File file) {
-        LithiumConfig config = new LithiumConfig();
+    public static RoadRunnerConfig load(File file) {
+        RoadRunnerConfig config = new RoadRunnerConfig();
 
         if (file.exists()) {
             Properties props = new Properties();
@@ -281,11 +281,11 @@ public class LithiumConfig {
         }
 
         try (Writer writer = new FileWriter(file)) {
-            writer.write("# This is the configuration file for Lithium.\n");
+            writer.write("# This is the configuration file for RoadRunner.\n");
             writer.write("# This file exists for debugging purposes and should not be configured otherwise.\n");
             writer.write("#\n");
             writer.write("# You can find information on editing this file and all the available options here:\n");
-            writer.write("# https://github.com/jellysquid3/lithium-fabric/wiki/Configuration-File\n");
+            writer.write("# https://github.com/MaxNeedsSnacks/roadrunner#configuration\n");
             writer.write("#\n");
             writer.write("# By default, this file will be empty except for this notice.\n");
         }

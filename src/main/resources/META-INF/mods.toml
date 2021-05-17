@@ -1,25 +1,25 @@
 modLoader = "javafml"
 loaderVersion = "[36,)"
-license = "All rights reserved" # Want to make your mod open source? Check out https://choosealicense.com/!
+license = "GNU LGPLv3" # Want to make your mod open source? Check out https://choosealicense.com/!
 
 [[mods]]
-modId = "lithium"
+modId = "roadrunner"
 
 version = "${version}"
-displayName = "Lithium"
+displayName = "Meep Meep! (Road Runner)"
 
 description = '''
-Don't use this, Max only makes cursed things.
+An unofficial fork of the popular optimisation mod Lithium, made for the Forge mod loader.
 '''
 
-[[dependencies.lithium]]
+[[dependencies.roadrunner]]
 modId = "forge"
 mandatory = true
 versionRange = "[36,)"
 ordering = "NONE"
 side = "BOTH"
 
-[[dependencies.lithium]]
+[[dependencies.roadrunner]]
 modId = "minecraft"
 mandatory = true
 versionRange = "[1.16.5,1.17)"

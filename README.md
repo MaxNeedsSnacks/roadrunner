@@ -1,4 +1,6 @@
+<!-- TODO: Add Project icon 
 ![Project icon](https://git-assets.jellysquid.me/hotlink-ok/lithium/icon-rounded-128px.png)
+-->
 
 # Meep Meep!
 ![GitHub license](https://img.shields.io/github/license/MaxNeedsSnacks/meep-meep.svg)

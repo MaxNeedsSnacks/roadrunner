@@ -1,7 +1,7 @@
 package me.jellysquid.mods.lithium.mixin;
 
-import me.jellysquid.mods.lithium.common.LithiumMod;
-import me.jellysquid.mods.lithium.common.config.LithiumConfig;
+import me.jellysquid.mods.lithium.common.RoadRunner;
+import me.jellysquid.mods.lithium.common.config.RoadRunnerConfig;
 import me.jellysquid.mods.lithium.common.config.Option;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -18,12 +18,12 @@ public class LithiumMixinPlugin implements IMixinConfigPlugin {
 
     private final Logger logger = LogManager.getLogger("Lithium");
 
-    private LithiumConfig config;
+    private RoadRunnerConfig config;
 
     @Override
     public void onLoad(String mixinPackage) {
         try {
-            this.config = LithiumConfig.load(new File("./config/lithium.properties"));
+            this.config = RoadRunnerConfig.load(new File("./config/lithium.properties"));
         } catch (Exception e) {
             throw new RuntimeException("Could not load configuration file for Lithium", e);
         }
@@ -31,7 +31,7 @@ public class LithiumMixinPlugin implements IMixinConfigPlugin {
         this.logger.info("Loaded configuration file for Lithium: {} options available, {} override(s) found",
                 this.config.getOptionCount(), this.config.getOptionOverrideCount());
 
-        LithiumMod.CONFIG = this.config;
+        RoadRunner.CONFIG = this.config;
     }
 
     @Override

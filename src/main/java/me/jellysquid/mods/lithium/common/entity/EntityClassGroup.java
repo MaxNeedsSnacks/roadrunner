@@ -44,7 +44,7 @@ public class EntityClassGroup {
         }
         if ((MINECART_BOAT_LIKE_COLLISION.contains(ShulkerEntity.class))) {
             //should not throw an Error here, because another mod *could* add the method to ShulkerEntity. Wwarning when this sanity check fails.
-            Logger.getLogger("Lithium EntityClassGroup").warning("Either chunk.entity_class_groups is broken or something else gave Shulkers the minecart-like collision behavior.");
+            Logger.getLogger("RoadRunner EntityClassGroup").warning("Either chunk.entity_class_groups is broken or something else gave Shulkers the minecart-like collision behavior.");
         }
         BOAT_SHULKER_LIKE_COLLISION.clear();
         MINECART_BOAT_LIKE_COLLISION.clear();

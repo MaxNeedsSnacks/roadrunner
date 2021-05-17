@@ -9,7 +9,7 @@ loom {
     silentMojangMappingsLicense()
 
     mixinConfigs = [
-            "lithium.mixins.json"
+            "roadrunner.mixins.json"
     ]
 }
 
@@ -90,12 +90,12 @@ jar {
     // add some additional metadata to the jar manifest
     manifest {
         attributes([
-                "Specification-Title"     : "lithium",
-                "Specification-Vendor"    : "CaffeineMC",
+                "Specification-Title"     : "roadrunner",
+                "Specification-Vendor"    : "MaxNeedsSnacks",
                 "Specification-Version"   : "1",
                 "Implementation-Title"    : project.name,
                 "Implementation-Version"  : version,
-                "Implementation-Vendor"   : "CaffeineMC",
+                "Implementation-Vendor"   : "MaxNeedsSnacks",
                 "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
         ])
     }
