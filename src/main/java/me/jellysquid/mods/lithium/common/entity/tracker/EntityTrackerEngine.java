@@ -1,9 +1,10 @@
 package me.jellysquid.mods.lithium.common.entity.tracker;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
+import it.unimi.dsi.fastutil.objects.*;
+import me.jellysquid.mods.lithium.common.LithiumMod;
 import me.jellysquid.mods.lithium.common.entity.tracker.nearby.NearbyEntityListener;
+import me.jellysquid.mods.lithium.common.entity.tracker.nearby.NearbyEntityListenerMulti;
 import me.jellysquid.mods.lithium.common.entity.tracker.nearby.NearbyEntityListenerProvider;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.util.math.BlockBox;
@@ -22,11 +23,13 @@ import java.util.Set;
 public class EntityTrackerEngine {
     private final Long2ObjectOpenHashMap<TrackedEntityList> sections;
     private final Reference2ReferenceOpenHashMap<NearbyEntityListener, List<TrackedEntityList>> sectionsByEntity;
+    private final Reference2LongMap<NearbyEntityListener> listenerPositions;
 
 
     public EntityTrackerEngine() {
         this.sections = new Long2ObjectOpenHashMap<>();
         this.sectionsByEntity = new Reference2ReferenceOpenHashMap<>();
+        this.listenerPositions = new Reference2LongOpenHashMap<>();
     }
 
     /**
@@ -35,7 +38,9 @@ public class EntityTrackerEngine {
     public void onEntityAdded(int x, int y, int z, LivingEntity entity) {
         if (this.addEntity(x, y, z, entity)) {
             if (entity instanceof NearbyEntityListenerProvider) {
-                this.addListener(x, y, z, ((NearbyEntityListenerProvider) entity).getListener());
+                NearbyEntityListenerMulti listener = ((NearbyEntityListenerProvider) entity).getListener();
+                this.addListener(x, y, z, listener);
+                listener.setTrackingEngine(this);
             }
         }
     }
@@ -46,19 +51,9 @@ public class EntityTrackerEngine {
     public void onEntityRemoved(int x, int y, int z, LivingEntity entity) {
         if (this.removeEntity(x, y, z, entity)) {
             if (entity instanceof NearbyEntityListenerProvider) {
-                this.removeListener(((NearbyEntityListenerProvider) entity).getListener());
-            }
-        }
-    }
-
-    /**
-     * Called when an entity moves between chunks within a world. This is less expensive to call than manually
-     * removing/adding an entity from chunks each time it moves.
-     */
-    public void onEntityMoved(int aX, int aY, int aZ, int bX, int bY, int bZ, LivingEntity entity) {
-        if (this.removeEntity(aX, aY, aZ, entity) && this.addEntity(bX, bY, bZ, entity)) {
-            if (entity instanceof NearbyEntityListenerProvider) {
-                this.moveListener(aX, aY, aZ, bX, bY, bZ, ((NearbyEntityListenerProvider) entity).getListener());
+                NearbyEntityListenerMulti listener = ((NearbyEntityListenerProvider) entity).getListener();
+                this.removeListener(listener);
+                listener.clearTrackingEngine();
             }
         }
     }
@@ -77,7 +72,8 @@ public class EntityTrackerEngine {
         return list.removeTrackedEntity(entity);
     }
 
-    private void addListener(int x, int y, int z, NearbyEntityListener listener) {
+    public void addListener(int x, int y, int z, NearbyEntityListener listener) {
+        this.listenerPositions.put(listener, encode(x, y, z));
         int r = listener.getChunkRange();
 
         if (r == 0) {
@@ -108,11 +104,12 @@ public class EntityTrackerEngine {
         this.sectionsByEntity.put(listener, all);
     }
 
-    private void removeListener(NearbyEntityListener listener) {
+    public ChunkSectionPos removeListener(NearbyEntityListener listener) {
         int r = listener.getChunkRange();
+        ChunkSectionPos result = decode(listenerPositions.removeLong(listener));
 
         if (r == 0) {
-            return;
+            return result;
         }
 
         List<TrackedEntityList> all = this.sectionsByEntity.remove(listener);
@@ -124,54 +121,7 @@ public class EntityTrackerEngine {
         } else {
             throw new IllegalArgumentException("Entity listener not tracked:" + listener.toString());
         }
-    }
-
-    // Faster implementation which avoids removing from/adding to every list twice on an entity move event
-    private void moveListener(int aX, int aY, int aZ, int bX, int bY, int bZ, NearbyEntityListener listener) {
-        int radius = listener.getChunkRange();
-
-        if (radius == 0) {
-            return;
-        }
-
-        BlockBox before = new BlockBox(aX - radius, aY - radius, aZ - radius, aX + radius, aY + radius, aZ + radius);
-        BlockBox after = new BlockBox(aX - radius, aY - radius, aZ - radius, bX + radius, bY + radius, bZ + radius);
-
-        BlockBox merged = new BlockBox(before);
-        merged.encompass(after);
-
-        BlockPos.Mutable pos = new BlockPos.Mutable();
-
-        for (int x = merged.minX; x <= merged.maxX; x++) {
-            for (int y = merged.minY; y <= merged.maxY; y++) {
-                for (int z = merged.minZ; z <= merged.maxZ; z++) {
-                    pos.set(x, y, z);
-
-                    boolean leaving = before.contains(pos);
-                    boolean entering = after.contains(pos);
-
-                    // Nothing to change
-                    if (leaving == entering) {
-                        continue;
-                    }
-
-                    if (leaving) {
-                        // The listener has left the chunk
-                        TrackedEntityList list = this.getList(x, y, z);
-
-                        if (list == null) {
-                            throw new IllegalStateException("Expected there to be a listener list while moving entity but there was none");
-                        }
-
-                        list.removeListener(listener);
-                    } else {
-                        // The listener has entered the chunk
-                        TrackedEntityList list = this.getOrCreateList(x, y, z);
-                        list.addListener(listener);
-                    }
-                }
-            }
-        }
+        return result;
     }
 
     private TrackedEntityList getOrCreateList(int x, int y, int z) {
