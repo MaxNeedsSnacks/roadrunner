@@ -20,7 +20,7 @@
     "ai.pathing.MixinBlock",
     "ai.pathing.PathNodeNavigatorMixin",
     "ai.poi.fast_init.PointOfInterestStorageMixin",
-    "ai.poi.fast_init.PointOfInterestTypeMixin",
+    "ai.poi.fast_init.PointOfInterestTypeAccess",
     "ai.poi.fast_retrieval.PointOfInterestSetMixin",
     "ai.poi.fast_retrieval.PointOfInterestStorageMixin",
     "ai.poi.fast_retrieval.SerializingRegionBasedStorageMixin",

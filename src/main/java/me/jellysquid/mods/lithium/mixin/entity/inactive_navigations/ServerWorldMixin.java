@@ -83,7 +83,10 @@ public abstract class ServerWorldMixin extends World implements ServerWorldExten
     }
 
     @Redirect(
-            method = "unloadEntity",
+            // method = "unloadEntity",
+            // forge replaces this with their own method
+            method = "removeEntityComplete",
+            remap = false,
             at = @At(
                     value = "INVOKE",
                     target = "Ljava/util/Set;remove(Ljava/lang/Object;)Z"

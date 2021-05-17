@@ -1,0 +1,9 @@
+repositories {
+    flatDir {
+        dirs 'flatdir'
+    }
+}
+
+dependencies {
+    modImplementation "flatdir_ignored:DataFixerSlayer1.0:3"
+}

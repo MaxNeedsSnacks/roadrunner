@@ -1,5 +1,6 @@
 package me.jellysquid.mods.lithium.mixin.ai.poi.fast_retrieval;
 
+import com.google.common.base.Preconditions;
 import com.mojang.datafixers.DataFixer;
 import com.mojang.serialization.Codec;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
@@ -51,6 +52,9 @@ public abstract class SerializingRegionBasedStorageMixin<R> implements RegionBas
     private void onEntryRemoved(long key, Optional<R> value) {
         // NO-OP... vanilla never removes anything, leaking entries.
         // We might want to fix this.
+        Preconditions.checkState(
+                !value.isPresent(), "This is only called as part of \"getOrCreate\" in vanilla!"
+        );
     }
 
     private void onEntryAdded(long key, Optional<R> value) {

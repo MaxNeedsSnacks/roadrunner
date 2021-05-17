@@ -9,7 +9,10 @@ import net.minecraft.fluid.FluidState;
 import net.minecraft.item.Item;
 import net.minecraft.item.Items;
 import org.spongepowered.asm.mixin.*;
-import org.spongepowered.asm.mixin.injection.*;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Constant;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyConstant;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.function.Predicate;
@@ -49,11 +52,7 @@ public class EntityShapeContextMixin {
 
     @Inject(
             method = "<init>(Lnet/minecraft/entity/Entity;)V",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/block/EntityShapeContext;<init>(ZDLnet/minecraft/item/Item;Ljava/util/function/Predicate;)V",
-                    shift = At.Shift.AFTER
-            )
+            at = @At("RETURN")
     )
     private void initFields(Entity entity, CallbackInfo ci) {
         this.heldItem = null;
@@ -68,7 +67,7 @@ public class EntityShapeContextMixin {
     @Overwrite
     public boolean isHolding(Item item) {
         if (this.heldItem == null) {
-            this.heldItem = this.lithium_entity instanceof LivingEntity ? ((LivingEntity)this.lithium_entity).getMainHandStack().getItem() : Items.AIR;
+            this.heldItem = this.lithium_entity instanceof LivingEntity ? ((LivingEntity) this.lithium_entity).getMainHandStack().getItem() : Items.AIR;
         }
         return this.heldItem == item;
     }

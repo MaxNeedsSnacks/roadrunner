@@ -48,7 +48,7 @@ public abstract class PistonBlockEntityMixin {
             locals = LocalCapture.CAPTURE_FAILHARD,
             cancellable = true
     )
-    private void skipVoxelShapeUnion(BlockView world, BlockPos pos, CallbackInfoReturnable<VoxelShape> cir, VoxelShape voxelShape2, BlockState blockState2, float f) {
+    private void skipVoxelShapeUnion(BlockView world, BlockPos pos, CallbackInfoReturnable<VoxelShape> cir, VoxelShape voxelShape2, Direction direction, BlockState blockState2, float f) {
         if (this.extending || !this.source) {
             //here voxelShape2.isEmpty() is guaranteed, vanilla code would call union() which calls simplify()
             VoxelShape blockShape = blockState2.getCollisionShape(world, pos);
