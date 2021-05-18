@@ -3,8 +3,10 @@ package me.jellysquid.mods.lithium.api.pathing;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.ai.pathing.LandPathNodeMaker;
 import net.minecraft.entity.ai.pathing.PathNodeType;
+import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.BlockView;
+import net.minecraftforge.common.extensions.IForgeBlock;
 
 /**
  * Provides the ability for mods to specify what {@link PathNodeType} their block uses for path-finding. This exists
@@ -42,4 +44,11 @@ public interface BlockPathingBehavior {
      *         neighbor of another path node
      */
     PathNodeType getPathNodeTypeAsNeighbor(BlockState state);
+
+    /**
+     * Indicates whether the cached node type is valid for this block or whether
+     * {@link IForgeBlock#getAiPathNodeType(BlockState, BlockView, BlockPos, MobEntity)} needs to be checked to find
+     * the correct type.
+     */
+    boolean needsDynamicNodeTypeCheck();
 }

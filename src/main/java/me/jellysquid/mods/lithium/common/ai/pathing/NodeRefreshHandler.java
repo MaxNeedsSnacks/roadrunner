@@ -16,6 +16,8 @@ public class NodeRefreshHandler {
             return;
         }
         for (Block b : ForgeRegistries.BLOCKS.getValues()) {
+            // We need to compute this even for dynamic blocks, since those may still return null and fall back to
+            // vanilla behavior
             for (BlockState state : b.getStateManager().getStates()) {
                 ((BlockStatePathingCache) state).refreshCachedType();
             }
