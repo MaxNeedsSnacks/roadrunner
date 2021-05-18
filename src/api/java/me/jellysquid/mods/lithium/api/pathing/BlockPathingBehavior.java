@@ -44,11 +44,4 @@ public interface BlockPathingBehavior {
      *         neighbor of another path node
      */
     PathNodeType getPathNodeTypeAsNeighbor(BlockState state);
-
-    /**
-     * Indicates whether the cached node type is valid for this block or whether
-     * {@link IForgeBlock#getAiPathNodeType(BlockState, BlockView, BlockPos, MobEntity)} needs to be checked to find
-     * the correct type.
-     */
-    boolean needsDynamicNodeTypeCheck();
 }

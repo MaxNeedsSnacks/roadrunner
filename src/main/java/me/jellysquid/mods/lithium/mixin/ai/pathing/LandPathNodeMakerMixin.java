@@ -1,6 +1,6 @@
 package me.jellysquid.mods.lithium.mixin.ai.pathing;
 
-import me.jellysquid.mods.lithium.api.pathing.BlockPathingBehavior;
+import me.jellysquid.mods.lithium.common.ai.pathing.DetailedBlockPathingBehavior;
 import me.jellysquid.mods.lithium.common.ai.pathing.PathNodeCache;
 import me.jellysquid.mods.lithium.common.world.WorldHelper;
 import net.minecraft.block.BlockState;
@@ -31,12 +31,19 @@ public abstract class LandPathNodeMakerMixin {
     @Overwrite
     public static PathNodeType getCommonNodeType(BlockView blockView, BlockPos blockPos) {
         BlockState blockState = blockView.getBlockState(blockPos);
-        PathNodeType type = null;
-        if (((BlockPathingBehavior) blockState.getBlock()).needsDynamicNodeTypeCheck()) {
+        PathNodeType type;
+        if (((DetailedBlockPathingBehavior) blockState.getBlock()).needsDynamicNodeTypeCheck()) {
             type = blockState.getAiPathNodeType(blockView, blockPos);
-        }
-        if (type == null) {
+            if (type == null) {
+                type = PathNodeCache.getPathNodeType(blockState);
+            }
+        } else {
             type = PathNodeCache.getPathNodeType(blockState);
+            if (type != PathNodeType.LAVA && type != PathNodeType.DANGER_FIRE &&
+                    ((DetailedBlockPathingBehavior) blockState.getBlock()).needsDynamicBurningCheck() &&
+                    blockState.isBurning(blockView, blockPos)) {
+                type = PathNodeType.DANGER_FIRE;
+            }
         }
 
         // If the node type is open, it means that we were unable to determine a more specific type, so we need
