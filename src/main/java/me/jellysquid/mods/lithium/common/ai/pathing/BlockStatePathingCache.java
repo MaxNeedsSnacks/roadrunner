@@ -6,4 +6,6 @@ public interface BlockStatePathingCache {
     PathNodeType getPathNodeType();
 
     PathNodeType getNeighborPathNodeType();
+
+    void refreshCachedType();
 }

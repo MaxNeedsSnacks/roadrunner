@@ -18,8 +18,8 @@ public abstract class MixinAbstractBlockState implements BlockStatePathingCache 
     private PathNodeType pathNodeType = PathNodeType.OPEN;
     private PathNodeType pathNodeTypeNeighbor = PathNodeType.OPEN;
 
-    @Inject(method = "initShapeCache", at = @At("RETURN"))
-    private void init(CallbackInfo ci) {
+    @Override
+    public void refreshCachedType() {
         BlockState state = this.asBlockState();
         BlockPathingBehavior behavior = (BlockPathingBehavior) this.getBlock();
 
