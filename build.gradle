@@ -31,7 +31,8 @@ if (build_id != null) {
     version += "+build.${build_id}"
 }
 
-sourceSets {
+// TODO: fix issue with multi source sets (archloom issue)
+/*sourceSets {
     api {
         java {
             compileClasspath += main.compileClasspath
@@ -44,7 +45,7 @@ sourceSets {
             runtimeClasspath += api.output
         }
     }
-}
+}*/
 
 dependencies {
     //to change the versions see the gradle.properties file
@@ -104,9 +105,10 @@ jar {
 // Include the license in all JAR outputs
 tasks.withType(Jar) {
     from "LICENSE.txt"
-    from sourceSets.api.output
+    //from sourceSets.api.output
 }
 
+/*
 task apiJar(type: Jar) {
     classifier "api-dev"
 
@@ -121,6 +123,7 @@ task remapApiJar(type: RemapJarTask, dependsOn: apiJar) {
 }
 
 build.dependsOn remapApiJar
+*/
 
 // Used to temporarily add mods to the workspace for debugging
 def customGradle = rootProject.file('custom.gradle');
