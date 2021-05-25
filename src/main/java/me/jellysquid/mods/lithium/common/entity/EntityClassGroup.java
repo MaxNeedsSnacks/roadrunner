@@ -4,14 +4,13 @@ import it.unimi.dsi.fastutil.objects.Reference2ByteOpenHashMap;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.mob.ShulkerEntity;
 import net.minecraft.entity.vehicle.MinecartEntity;
-import net.minecraft.util.crash.CrashException;
-import net.minecraft.util.crash.CrashReport;
-import net.minecraft.util.crash.CrashReportSection;
 import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
+import java.lang.reflect.Method;
 import java.util.Objects;
 import java.util.function.Predicate;
-import java.util.logging.Logger;
 
 /**
  * Class for grouping Entity classes by some property for use in TypeFilterableList
@@ -24,6 +23,8 @@ import java.util.logging.Logger;
 public class EntityClassGroup {
     public static final EntityClassGroup BOAT_SHULKER_LIKE_COLLISION; //aka entities that other entities will do block-like collisions with when moving
     public static final EntityClassGroup MINECART_BOAT_LIKE_COLLISION; //aka entities that will attempt to collide with all other entities when moving
+
+    public static final Logger LOGGER = LogManager.getLogger("RoadRunner EntityClassGroup");
 
     static {
         // TODO: re-evaluate life choices (and fix this)
@@ -44,7 +45,7 @@ public class EntityClassGroup {
         }
         if ((MINECART_BOAT_LIKE_COLLISION.contains(ShulkerEntity.class))) {
             //should not throw an Error here, because another mod *could* add the method to ShulkerEntity. Wwarning when this sanity check fails.
-            Logger.getLogger("RoadRunner EntityClassGroup").warning("Either chunk.entity_class_groups is broken or something else gave Shulkers the minecart-like collision behavior.");
+            LOGGER.warn("Either chunk.entity_class_groups is broken or something else gave Shulkers the minecart-like collision behavior.");
         }
         BOAT_SHULKER_LIKE_COLLISION.clear();
         MINECART_BOAT_LIKE_COLLISION.clear();
@@ -94,21 +95,19 @@ public class EntityClassGroup {
     }
 
     public static boolean isMethodFromSuperclassOverwritten(Class<?> clazz, Class<?> superclass, String methodName, Class<?>... methodArgs) {
-        while (clazz != null && clazz != superclass && superclass.isAssignableFrom(clazz)) {
+        if (clazz != null && clazz != superclass && superclass.isAssignableFrom(clazz)) {
             try {
-                clazz.getDeclaredMethod(methodName, methodArgs);
-                return true;
-            } catch (NoSuchMethodException e) {
-                clazz = clazz.getSuperclass();
+                Method m = clazz.getMethod(methodName, methodArgs);
+                return m.getDeclaringClass() != superclass;
             } catch (Throwable e) {
-                final String crashedClass = clazz.getName();
-                CrashReport crashReport = CrashReport.create(e, "Lithium EntityClassGroup analysis");
-                CrashReportSection crashReportSection = crashReport.addElement(e.getClass().toString() + " when getting declared methods.");
-                crashReportSection.add("Analyzed class", crashedClass);
-                crashReportSection.add("Analyzed method name", methodName);
-                crashReportSection.add("Analyzed method args", methodArgs);
+                // It's likely that someone forgot to add their environment annotations,
+                // but either way we should assume the worst (non-crashing) outcome here!
+                final String erroredClass = clazz.getName();
 
-                throw new CrashException(crashReport);
+                LOGGER.warn("Entity Class {} could not be analysed because of a {}!" +
+                        " Assuming the worst outcome, we're not going to override any behaviour here.", erroredClass, e.toString());
+                LOGGER.warn("(If the class above belongs to a mod, they probably forgot to annotate their client-only code).");
+                return true;
             }
         }
         return false;
