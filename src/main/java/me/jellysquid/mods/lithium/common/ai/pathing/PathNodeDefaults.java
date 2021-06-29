@@ -56,6 +56,14 @@ public class PathNodeDefaults {
             return PathNodeType.COCOA;
         }
 
+        // Retrieve the fluid state from the block state to avoid a second lookup
+        FluidState fluidState = state.getFluidState();
+        if (fluidState.isIn(FluidTags.WATER)) {
+            return PathNodeType.WATER;
+        } else if (fluidState.isIn(FluidTags.LAVA)) {
+            return PathNodeType.LAVA;
+        }
+
         if (isFireDangerSource(state)) {
             return PathNodeType.DAMAGE_FIRE;
         }
@@ -82,15 +90,6 @@ public class PathNodeDefaults {
 
         if (block.isIn(BlockTags.FENCES) || block.isIn(BlockTags.WALLS) || ((block instanceof FenceGateBlock) && !state.get(FenceGateBlock.OPEN))) {
             return PathNodeType.FENCE;
-        }
-
-        // Retrieve the fluid state from the block state to avoid a second lookup
-        FluidState fluid = state.getFluidState();
-
-        if (fluid.isIn(FluidTags.WATER)) {
-            return PathNodeType.WATER;
-        } else if (fluid.isIn(FluidTags.LAVA)) {
-            return PathNodeType.LAVA;
         }
 
         return PathNodeType.OPEN;
