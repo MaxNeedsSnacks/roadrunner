@@ -2,7 +2,7 @@
   "package": "me.jellysquid.mods.lithium.mixin",
   "required": true,
   "compatibilityLevel": "JAVA_8",
-  "plugin": "me.jellysquid.mods.lithium.mixin.LithiumMixinPlugin",
+  "plugin": "me.jellysquid.mods.lithium.mixin.RoadRunnerMixinPlugin",
   "injectors": {
     "defaultRequire": 1
   },

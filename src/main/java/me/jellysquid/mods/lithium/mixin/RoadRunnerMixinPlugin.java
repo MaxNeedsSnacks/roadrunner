@@ -13,7 +13,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Set;
 
-public class LithiumMixinPlugin implements IMixinConfigPlugin {
+public class RoadRunnerMixinPlugin implements IMixinConfigPlugin {
     private static final String MIXIN_PACKAGE_ROOT = "me.jellysquid.mods.lithium.mixin.";
 
     private final Logger logger = LogManager.getLogger("RoadRunner Early Loading");
@@ -23,12 +23,12 @@ public class LithiumMixinPlugin implements IMixinConfigPlugin {
     @Override
     public void onLoad(String mixinPackage) {
         try {
-            this.config = RoadRunnerConfig.load(new File("./config/lithium.properties"));
+            this.config = RoadRunnerConfig.load(new File("./config/roadrunner/rules.properties"));
         } catch (Exception e) {
-            throw new RuntimeException("Could not load configuration file for RoadRunner", e);
+            throw new RuntimeException("Could not load rule configuration file for RoadRunner", e);
         }
 
-        this.logger.info("Loaded configuration file for RoadRunner: {} options available, {} override(s) found",
+        this.logger.info("Loaded rule configuration file for RoadRunner: {} options available, {} override(s) found",
                 this.config.getOptionCount(), this.config.getOptionOverrideCount());
 
         RoadRunner.CONFIG = this.config;

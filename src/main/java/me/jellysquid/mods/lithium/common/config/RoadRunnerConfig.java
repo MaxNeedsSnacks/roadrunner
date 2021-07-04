@@ -1,13 +1,13 @@
 package me.jellysquid.mods.lithium.common.config;
 
+import net.minecraftforge.fml.ModList;
+import net.minecraftforge.fml.loading.moddiscovery.ModInfo;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.Writer;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -18,8 +18,6 @@ import java.util.Properties;
 @SuppressWarnings("CanBeFinal")
 public class RoadRunnerConfig {
     private static final Logger LOGGER = LogManager.getLogger("RoadRunner Config");
-
-    // private static final String JSON_KEY_LITHIUM_OPTIONS = "lithium:options";
 
     private final Map<String, Option> options = new HashMap<>();
 
@@ -162,39 +160,48 @@ public class RoadRunnerConfig {
         }
     }
 
-    /*private void applyModOverrides() {
-        for (ModContainer container : FabricLoader.getInstance().getAllMods()) {
-            ModMetadata meta = container.getMetadata();
+    /*
+     * Modified by RoadRunner for Forge mods
+     *
+     * Since Forge doesn't have any good ways to add overrides to the metadata files,
+     * we'll just be using a properties file that goes into a mod's resources folder.
+     *
+     */
+    private void applyModOverrides() {
+        for (ModInfo mod : ModList.get().getMods()) {
+            String modid = mod.getModId();
+            Path path = mod.getOwningFile().getFile().findResource("roadrunner.overrides.properties");
+            if (Files.exists(path)) {
+                Properties props = new Properties();
 
-            if (meta.containsCustomValue(JSON_KEY_LITHIUM_OPTIONS)) {
-                CustomValue overrides = meta.getCustomValue(JSON_KEY_LITHIUM_OPTIONS);
-
-                if (overrides.getType() != CvType.OBJECT) {
-                    LOGGER.warn("Mod '{}' contains invalid Lithium option overrides, ignoring", meta.getId());
+                try (InputStream stream = Files.newInputStream(path)) {
+                    props.load(stream);
+                } catch (IOException e) {
+                    LOGGER.warn("Could not load overrides file for mod '{}', ignoring", modid);
                     continue;
                 }
 
-                for (Map.Entry<String, CustomValue> entry : overrides.getAsObject()) {
-                    this.applyModOverride(meta, entry.getKey(), entry.getValue());
+                for (Map.Entry<Object, Object> entry : props.entrySet()) {
+                    applyModOverride(modid, entry.getKey().toString(), entry.getValue().toString());
                 }
             }
         }
     }
 
-    private void applyModOverride(ModMetadata meta, String name, CustomValue value) {
+    private void applyModOverride(String modid, String name, String value) {
         Option option = this.options.get(name);
 
         if (option == null) {
-            LOGGER.warn("Mod '{}' attempted to override option '{}', which doesn't exist, ignoring", meta.getId(), name);
+            LOGGER.warn("Mod '{}' attempted to override option '{}', which doesn't exist, ignoring", modid, name);
             return;
         }
 
-        if (value.getType() != CvType.BOOLEAN) {
-            LOGGER.warn("Mod '{}' attempted to override option '{}' with an invalid value, ignoring", meta.getId(), name);
+        boolean enabled = Boolean.parseBoolean(value);
+
+        if (!value.equals(Boolean.toString(enabled))) {
+            LOGGER.warn("Mod '{}' attempted to override option '{}' with an invalid value, ignoring", modid, name);
             return;
         }
-
-        boolean enabled = value.getAsBoolean();
 
         // disabling the option takes precedence over enabling
         if (!enabled && option.isEnabled()) {
@@ -202,9 +209,9 @@ public class RoadRunnerConfig {
         }
 
         if (!enabled || option.isEnabled() || option.getDefiningMods().isEmpty()) {
-            option.addModOverride(enabled, meta.getId());
+            option.addModOverride(enabled, modid);
         }
-    }*/
+    }
 
     /**
      * Returns the effective option for the specified class name. This traverses the package path of the given mixin
@@ -264,7 +271,7 @@ public class RoadRunnerConfig {
             }
         }
 
-        // config.applyModOverrides();
+        config.applyModOverrides();
 
         return config;
     }
