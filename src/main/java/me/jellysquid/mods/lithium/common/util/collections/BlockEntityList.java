@@ -95,7 +95,7 @@ public class BlockEntityList implements List<BlockEntity> {
     }
 
     private void throwException(BlockEntity blockEntity) {
-        throw new IllegalStateException("Lithium BlockEntityList" + (this.posMap != null ? " with posMap" : "") + ": Adding the same BlockEntity object twice: " + blockEntity.toTag(new CompoundTag()));
+        throw new IllegalStateException("RoadRunner BlockEntityList" + (this.posMap != null ? " with posMap" : "") + ": Adding the same BlockEntity object twice: " + blockEntity.toTag(new CompoundTag()));
     }
 
     @Override

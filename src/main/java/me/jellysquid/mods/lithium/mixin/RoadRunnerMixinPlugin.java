@@ -1,7 +1,7 @@
 package me.jellysquid.mods.lithium.mixin;
 
 import me.jellysquid.mods.lithium.common.RoadRunner;
-import me.jellysquid.mods.lithium.common.config.RoadRunnerConfig;
+import me.jellysquid.mods.lithium.common.config.RoadRunnerRuleConfig;
 import me.jellysquid.mods.lithium.common.config.Option;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -18,12 +18,12 @@ public class RoadRunnerMixinPlugin implements IMixinConfigPlugin {
 
     private final Logger logger = LogManager.getLogger("RoadRunner Early Loading");
 
-    private RoadRunnerConfig config;
+    private RoadRunnerRuleConfig config;
 
     @Override
     public void onLoad(String mixinPackage) {
         try {
-            this.config = RoadRunnerConfig.load(new File("./config/roadrunner/rules.properties"));
+            this.config = RoadRunnerRuleConfig.load(new File("./config/roadrunner/rules.properties"));
         } catch (Exception e) {
             throw new RuntimeException("Could not load rule configuration file for RoadRunner", e);
         }
@@ -31,7 +31,7 @@ public class RoadRunnerMixinPlugin implements IMixinConfigPlugin {
         this.logger.info("Loaded rule configuration file for RoadRunner: {} options available, {} override(s) found",
                 this.config.getOptionCount(), this.config.getOptionOverrideCount());
 
-        RoadRunner.CONFIG = this.config;
+        RoadRunner.RULE_CONFIG = this.config;
     }
 
     @Override

@@ -1,7 +1,5 @@
 package me.jellysquid.mods.lithium.common.config;
 
-import net.minecraftforge.fml.ModList;
-import net.minecraftforge.fml.loading.FMLLoader;
 import net.minecraftforge.fml.loading.LoadingModList;
 import net.minecraftforge.fml.loading.moddiscovery.ModInfo;
 import org.apache.logging.log4j.LogManager;
@@ -18,12 +16,12 @@ import java.util.Properties;
  * Documentation of these options: https://github.com/jellysquid3/lithium-fabric/wiki/Configuration-File
  */
 @SuppressWarnings("CanBeFinal")
-public class RoadRunnerConfig {
+public class RoadRunnerRuleConfig {
     private static final Logger LOGGER = LogManager.getLogger("RoadRunner Config");
 
     private final Map<String, Option> options = new HashMap<>();
 
-    private RoadRunnerConfig() {
+    private RoadRunnerRuleConfig() {
         // Defines the default rules which can be configured by the user or other mods.
         // You must manually add a rule for any new mixins not covered by an existing package rule.
 
@@ -118,6 +116,7 @@ public class RoadRunnerConfig {
         this.addMixinRule("world.mob_spawning", true);
         this.addMixinRule("world.player_chunk_tick", true);
         this.addMixinRule("world.tick_scheduler", true);
+        this.addMixinRule("world.light_batching", true);
     }
 
     /**
@@ -252,8 +251,8 @@ public class RoadRunnerConfig {
      * Loads the configuration file from the specified location. If it does not exist, a new configuration file will be
      * created. The file on disk will then be updated to include any new options.
      */
-    public static RoadRunnerConfig load(File file) {
-        RoadRunnerConfig config = new RoadRunnerConfig();
+    public static RoadRunnerRuleConfig load(File file) {
+        RoadRunnerRuleConfig config = new RoadRunnerRuleConfig();
 
         if (file.exists()) {
             Properties props = new Properties();
