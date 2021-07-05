@@ -1,6 +1,8 @@
 package me.jellysquid.mods.lithium.common.config;
 
 import net.minecraftforge.fml.ModList;
+import net.minecraftforge.fml.loading.FMLLoader;
+import net.minecraftforge.fml.loading.LoadingModList;
 import net.minecraftforge.fml.loading.moddiscovery.ModInfo;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -168,7 +170,7 @@ public class RoadRunnerConfig {
      *
      */
     private void applyModOverrides() {
-        for (ModInfo mod : ModList.get().getMods()) {
+        for (ModInfo mod : LoadingModList.get().getMods()) {
             String modid = mod.getModId();
             Path path = mod.getOwningFile().getFile().findResource("roadrunner.overrides.properties");
             if (Files.exists(path)) {

@@ -1,6 +1,7 @@
 package me.jellysquid.mods.lithium.common;
 
 import me.jellysquid.mods.lithium.common.config.RoadRunnerConfig;
+import net.minecraftforge.fml.CrashReportExtender;
 import net.minecraftforge.fml.ExtensionPoint;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
@@ -18,6 +19,8 @@ public class RoadRunner {
     public static Logger LOGGER = LogManager.getLogger();
 
     public RoadRunner() {
+        CrashReportExtender.registerCrashCallable("RoadRunner != Lithium",
+                () -> "This instance was launched using RoadRunner, which is an *unofficial* Lithium fork! Please **do not** report bugs to them!");
         if (CONFIG == null) {
             throw new IllegalStateException("The mixin plugin did not initialize the config! Did it not load?");
         }
