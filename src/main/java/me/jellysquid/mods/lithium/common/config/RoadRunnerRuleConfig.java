@@ -293,7 +293,7 @@ public class RoadRunnerRuleConfig {
             writer.write("# This file exists for debugging purposes and should not be configured otherwise.\n");
             writer.write("#\n");
             writer.write("# You can find information on editing this file and all the available options here:\n");
-            writer.write("# https://github.com/MaxNeedsSnacks/roadrunner#configuration\n");
+            writer.write("# https://github.com/MaxNeedsSnacks/roadrunner/wiki/Configuration-Files#rule-overrides\n");
             writer.write("#\n");
             writer.write("# By default, this file will be empty except for this notice.\n");
         }

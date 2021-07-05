@@ -20,8 +20,10 @@ group = project.maven_group
 version = project.mod_version
 archivesBaseName = "${project.name}-mc${project.minecraft_version}"
 
-def build_release = System.getenv("BUILD_RELEASE") == "true"
-def build_id = System.getenv("BUILD_ID")
+def ENV = System.getenv()
+
+def build_release = ENV.BUILD_RELEASE == "true"
+def build_id = ENV.BUILD_ID
 
 if (!build_release) {
     version += "-SNAPSHOT"
@@ -106,6 +108,29 @@ jar {
 tasks.withType(Jar) {
     from "LICENSE.txt"
     //from sourceSets.api.output
+}
+
+publishing {
+    publications {
+        mavenForge(MavenPublication) {
+            artifactId = "roadrunner-forge"
+            artifact(remapJar) {
+                classifier null
+            }
+        }
+    }
+
+    repositories {
+        if (ENV.SAPS_TOKEN) {
+            maven {
+                url "https://maven.saps.dev/minecraft"
+                credentials {
+                    username = "max"
+                    password = "${ENV.SAPS_TOKEN}"
+                }
+            }
+        }
+    }
 }
 
 /*

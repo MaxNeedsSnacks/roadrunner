@@ -47,7 +47,7 @@ If you do encounter an issue where we deviate from the norm (in this case both v
 Out of the box, no additional configuration is necessary once the mod has been installed. Meep Meep! makes use of a configuration override system which allows you to either forcefully disable problematic patches or enable incubating patches which are otherwise disabled by default. As such, an empty config file simply means you'd like to use the
 default configuration, which includes all stable optimizations by default. 
 
-As Meep Meep! currently maintains 100% feature parity with (the 1.16 version of) Lithium, you may also visit [their Wiki page](https://github.com/jellysquid3/lithium-fabric/wiki/Configuration-File) for more information on the configuration file format and all available options.
+For more detailed information on the different configuration file format and all available options, please see our [Wiki](https://github.com/MaxNeedsSnacks/roadrunner/wiki/Configuration-Files).
 
 ---
 
