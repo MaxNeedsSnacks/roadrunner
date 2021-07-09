@@ -67,6 +67,7 @@ public abstract class ChunkRegionMixin implements StructureWorldAccess {
      */
     @Overwrite
     public Chunk getChunk(int chunkX, int chunkZ) {
+        // Skip checking chunk.getStatus().isAtLeast(ChunkStatus.EMPTY) here, because it is always true
         int x = chunkX - this.minChunkX;
         int z = chunkZ - this.minChunkZ;
         int w = this.width;
@@ -76,13 +77,5 @@ public abstract class ChunkRegionMixin implements StructureWorldAccess {
         } else {
             throw new NullPointerException("No chunk exists at " + new ChunkPos(chunkX, chunkZ));
         }
-    }
-
-    /**
-     * Use our chunk fetch function
-     */
-    public Chunk getChunk(BlockPos pos) {
-        // Skip checking chunk.getStatus().isAtLeast(ChunkStatus.EMPTY) here, because it is always true
-        return this.getChunk(pos.getX() >> 4, pos.getZ() >> 4);
     }
 }
