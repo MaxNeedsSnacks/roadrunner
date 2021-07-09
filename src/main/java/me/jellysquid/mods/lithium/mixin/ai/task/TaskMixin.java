@@ -27,7 +27,7 @@ public class TaskMixin<E extends LivingEntity> {
     }
 
     /**
-     * @reason Replace stream-based code with traditional iteration, use a flattened array list to avoid pointer chasing
+     * @reason Use fastIterable instead of standard entry set iterator
      * @author JellySquid
      */
     @Overwrite

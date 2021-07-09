@@ -28,13 +28,13 @@ public final class LithiumDoublePairList implements PairList {
         this.merge(getArray(aPoints), getArray(bPoints), aPoints.size(), bPoints.size(), flag1, flag2);
     }
 
-    private void merge(double[] aPoints, double[] bPoints, int aSize, int bSize, boolean flag1, boolean flag2) {
+    private void merge(double[] aPoints, double[] bPoints, int aSize, int bSize, boolean includeOutsideB, boolean includeOutsideA) {
         int aIdx = 0;
         int bIdx = 0;
 
         double prev = 0.0D;
 
-        int a1 = 0, a2 = 0;
+        int nextPairIndex = 0, nextPointIndex = 0;
 
         while (true) {
             boolean aWithinBounds = aIdx < aSize;
@@ -54,33 +54,33 @@ public final class LithiumDoublePairList implements PairList {
                 value = bPoints[bIdx++];
             }
 
-            if ((aIdx == 0 || !aWithinBounds) && !flip && !flag2) {
+            if ((aIdx == 0 || !aWithinBounds) && !flip && !includeOutsideA) {
                 continue;
             }
 
-            if ((bIdx == 0 || !bWithinBounds) && flip && !flag1) {
+            if ((bIdx == 0 || !bWithinBounds) && flip && !includeOutsideB) {
                 continue;
             }
 
-            if (a2 == 0 || prev < value - 1.0E-7D) {
-                this.indicesFirst[a1] = aIdx - 1;
-                this.indicesSecond[a1] = bIdx - 1;
-                this.merged[a2] = value;
+            if (nextPointIndex == 0 || prev < value - 1.0E-7D) {
+                this.indicesFirst[nextPairIndex] = aIdx - 1;
+                this.indicesSecond[nextPairIndex] = bIdx - 1;
+                this.merged[nextPointIndex] = value;
 
-                a1++;
-                a2++;
+                nextPairIndex++;
+                nextPointIndex++;
                 prev = value;
-            } else if (a2 > 0) {
-                this.indicesFirst[a1 - 1] = aIdx - 1;
-                this.indicesSecond[a1 - 1] = bIdx - 1;
+            } else if (nextPointIndex > 0) {
+                this.indicesFirst[nextPairIndex - 1] = aIdx - 1;
+                this.indicesSecond[nextPairIndex - 1] = bIdx - 1;
             }
         }
 
-        if (a2 == 0) {
-            this.merged[a2++] = Math.min(aPoints[aSize - 1], bPoints[bSize - 1]);
+        if (nextPointIndex == 0) {
+            this.merged[nextPointIndex++] = Math.min(aPoints[aSize - 1], bPoints[bSize - 1]);
         }
 
-        this.pairs.size(a2);
+        this.pairs.size(nextPointIndex);
     }
 
     @Override

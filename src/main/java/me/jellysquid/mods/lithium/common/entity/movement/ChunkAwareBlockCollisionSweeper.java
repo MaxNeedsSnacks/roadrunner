@@ -160,7 +160,8 @@ public class ChunkAwareBlockCollisionSweeper {
     }
 
     /**
-     * Advances the sweep forward until finding a block with a box-colliding VoxelShape
+     * Advances the sweep forward until finding a block with a box-colliding VoxelShape<br>
+     * cf VoxelShapes#calculatePushVelocity (?)
      *
      * @return null if no VoxelShape is left in the area, otherwise the next VoxelShape
      */
