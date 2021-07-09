@@ -1,6 +1,7 @@
 modLoader = "javafml"
 loaderVersion = "[36,)"
 license = "GNU LGPLv3" # Want to make your mod open source? Check out https://choosealicense.com/!
+issueTrackerURL = "https://github.com/MaxNeedsSnacks/roadrunner/issues"
 
 [[mods]]
 modId = "roadrunner"
