@@ -19,6 +19,7 @@ jobs:
         run: ./gradlew build publish
         env:
           BUILD_RELEASE: ${{ github.event.prerelease == false }}
+          SAPS_TOKEN: ${{ secrets.SAPS_TOKEN }}
       - name: Upload assets to GitHub
         uses: AButler/upload-release-assets@v2.0
         with:
