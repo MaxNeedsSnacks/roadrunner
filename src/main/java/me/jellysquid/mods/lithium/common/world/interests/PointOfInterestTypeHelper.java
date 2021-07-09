@@ -1,9 +1,8 @@
 package me.jellysquid.mods.lithium.common.world.interests;
 
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ReferenceArraySet;
-import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import me.jellysquid.mods.lithium.common.RoadRunner;
+import me.jellysquid.mods.lithium.common.util.collections.SetFactory;
 import me.jellysquid.mods.lithium.mixin.ai.poi.fast_init.PointOfInterestTypeAccess;
 import net.minecraft.block.BlockState;
 import net.minecraft.world.chunk.ChunkSection;
@@ -36,12 +35,6 @@ public class PointOfInterestTypeHelper {
         blockstatePOIMap = new Reference2ReferenceOpenHashMap<>(blockstatePOIMap);
         PointOfInterestTypeAccess.setBlockStateToPointOfInterestType(blockstatePOIMap);
 
-        // This threshold is not based on anything but gut feeling, if anyone has actual profiling data it should be
-        // adjusted
-        if (blockstatePOIMap.size() < 20) {
-            TYPES = new ReferenceArraySet<>(blockstatePOIMap.keySet());
-        } else {
-            TYPES = new ReferenceOpenHashSet<>(blockstatePOIMap.keySet());
-        }
+        TYPES = SetFactory.createFastRefBasedCopy(blockstatePOIMap.keySet());
     }
 }

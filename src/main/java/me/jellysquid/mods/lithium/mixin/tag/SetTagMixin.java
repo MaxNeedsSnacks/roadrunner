@@ -2,6 +2,7 @@ package me.jellysquid.mods.lithium.mixin.tag;
 
 import it.unimi.dsi.fastutil.objects.ReferenceArraySet;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
+import me.jellysquid.mods.lithium.common.util.collections.SetFactory;
 import net.minecraft.tag.SetTag;
 import net.minecraft.tag.Tag;
 import org.spongepowered.asm.mixin.Final;
@@ -34,11 +35,6 @@ public abstract class SetTagMixin<T> implements Tag<T> {
     @Inject(method = "<init>(Ljava/util/Set;Ljava/lang/Class;)V", at = @At("RETURN"))
     private void init(Set<T> set, Class<?> var2, CallbackInfo ci) {
         // Reference equality is safe for tag values
-        // Use linear-scanning when the number of items in the tag is small
-        if (this.valueSet.size() <= 3) {
-            this.valueSet = new ReferenceArraySet<>(this.valueSet);
-        } else {
-            this.valueSet = new ReferenceOpenHashSet<>(this.valueSet);
-        }
+        this.valueSet = SetFactory.createFastRefBasedCopy(this.valueSet);
     }
 }
