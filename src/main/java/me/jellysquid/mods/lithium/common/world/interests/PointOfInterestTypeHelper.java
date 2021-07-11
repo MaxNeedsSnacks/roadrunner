@@ -6,6 +6,7 @@ import me.jellysquid.mods.lithium.common.util.collections.SetFactory;
 import me.jellysquid.mods.lithium.mixin.ai.poi.fast_init.PointOfInterestTypeAccess;
 import net.minecraft.block.BlockState;
 import net.minecraft.world.chunk.ChunkSection;
+import net.minecraft.world.poi.PointOfInterestStorage;
 import net.minecraft.world.poi.PointOfInterestType;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
@@ -20,6 +21,8 @@ import java.util.Set;
  */
 @EventBusSubscriber(modid = RoadRunner.MODID, bus = Bus.MOD)
 public class PointOfInterestTypeHelper {
+    public interface EnabledMarker {
+    }
     private static Set<BlockState> TYPES;
 
     public static boolean shouldScan(ChunkSection section) {
@@ -28,6 +31,9 @@ public class PointOfInterestTypeHelper {
 
     @SubscribeEvent
     public static void setup(FMLCommonSetupEvent ev) {
+        if (!EnabledMarker.class.isAssignableFrom(PointOfInterestStorage.class)) {
+            return;
+        }
         if (TYPES != null) {
             throw new IllegalStateException("Already initialized");
         }
