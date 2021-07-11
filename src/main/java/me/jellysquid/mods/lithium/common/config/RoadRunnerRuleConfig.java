@@ -67,6 +67,7 @@ public class RoadRunnerRuleConfig {
         this.addMixinRule("entity.data_tracker", true);
         this.addMixinRule("entity.data_tracker.no_locks", true);
         this.addMixinRule("entity.data_tracker.use_arrays", true);
+        this.addMixinRule("entity.fast_fluid_check", true);
         this.addMixinRule("entity.fast_suffocation_check", true);
         this.addMixinRule("entity.gravity_check_block_below", true);
         this.addMixinRule("entity.inactive_navigations", true);
