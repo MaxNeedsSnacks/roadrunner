@@ -1,5 +1,6 @@
 package me.jellysquid.mods.lithium.mixin.world.block_entity_ticking.sleeping;
 
+import com.mojang.datafixers.util.Pair;
 import me.jellysquid.mods.lithium.common.util.collections.MaskedTickingBlockEntityList;
 import me.jellysquid.mods.lithium.common.world.blockentity.BlockEntitySleepTracker;
 import me.jellysquid.mods.lithium.common.world.blockentity.SleepingBlockEntity;
@@ -18,6 +19,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.function.Supplier;
@@ -38,13 +40,17 @@ public abstract class WorldMixin implements BlockEntitySleepTracker {
     @Shadow
     public abstract boolean isClient();
 
+    @Shadow
+    protected boolean iteratingTickingBlockEntities;
     private MaskedTickingBlockEntityList<BlockEntity> tickingBlockEntities$lithium;
+    private List<Pair<BlockEntity, Boolean>> pendingSleepStates$lithium;
 
     @Inject(method = "<init>", at = @At("RETURN"))
     private void reinit(MutableWorldProperties properties, RegistryKey<World> registryKey, DimensionType dimensionType,
                         Supplier<Profiler> supplier, boolean bl, boolean bl2, long l, CallbackInfo ci) {
         this.tickingBlockEntities$lithium = new MaskedTickingBlockEntityList<>(this.tickingBlockEntities, blockEntity -> ((SleepingBlockEntity) blockEntity).canTickOnSide(this.isClient()));
         this.tickingBlockEntities = tickingBlockEntities$lithium;
+        this.pendingSleepStates$lithium = new ArrayList<>();
     }
 
     @Redirect(method = "tickBlockEntities", at = @At(value = "INVOKE", target = "Ljava/util/List;iterator()Ljava/util/Iterator;"))
@@ -55,8 +61,20 @@ public abstract class WorldMixin implements BlockEntitySleepTracker {
         return list.iterator();
     }
 
+    @Inject(method = "tickBlockEntities", at = @At(value = "INVOKE_STRING", target = "Lnet/minecraft/util/profiler/Profiler;swap(Ljava/lang/String;)V", args = "ldc=pendingBlockEntities", shift = At.Shift.AFTER))
+    private void applyPendingSleepStates(CallbackInfo ci) {
+        for (Pair<BlockEntity, Boolean> stateChange : this.pendingSleepStates$lithium) {
+            this.tickingBlockEntities$lithium.setEntryVisible(stateChange.getFirst(), stateChange.getSecond());
+        }
+        pendingSleepStates$lithium.clear();
+    }
+
     @Override
     public void setAwake(BlockEntity blockEntity, boolean needsTicking) {
-        this.tickingBlockEntities$lithium.setEntryVisible(blockEntity, needsTicking);
+        if (iteratingTickingBlockEntities) {
+            pendingSleepStates$lithium.add(Pair.of(blockEntity, needsTicking));
+        } else {
+            this.tickingBlockEntities$lithium.setEntryVisible(blockEntity, needsTicking);
+        }
     }
 }
