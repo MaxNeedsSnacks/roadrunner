@@ -12,9 +12,12 @@ import net.minecraft.util.math.Box;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
+import net.minecraft.world.BlockView;
 import net.minecraft.world.CollisionView;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.ChunkSection;
+
+import javax.annotation.Nullable;
 
 import static me.jellysquid.mods.lithium.common.entity.LithiumEntityCollisions.EPSILON;
 
@@ -58,7 +61,8 @@ public class ChunkAwareBlockCollisionSweeper {
     private int cIterated;
 
     private boolean sectionOversizedBlocks;
-    private Chunk cachedChunk;
+    private BlockView cachedChunk;
+    @Nullable
     private ChunkSection cachedChunkSection;
     private boolean needEntityCollisionCheck;
 
@@ -95,7 +99,11 @@ public class ChunkAwareBlockCollisionSweeper {
                 //note: this.minX, maxX etc are not expanded, so there are lots of +1 and -1 around.
                 if (this.cachedChunk != null && this.chunkY < 15 && this.chunkY < ((this.maxY + 1) >> 4)) {
                     this.chunkY++;
-                    this.cachedChunkSection = this.cachedChunk.getSectionArray()[this.chunkY];
+                    if (this.cachedChunk instanceof Chunk) {
+                        this.cachedChunkSection = ((Chunk) this.cachedChunk).getSectionArray()[this.chunkY];
+                    } else {
+                        this.cachedChunkSection = null;
+                    }
                 } else {
                     this.chunkY = MathHelper.clamp((this.minY - 1) >> 4, 0, 15);
 
@@ -111,14 +119,15 @@ public class ChunkAwareBlockCollisionSweeper {
                             return false; //no more sections to iterate
                         }
                     }
-                    //Casting to Chunk is not checked, together with other mods this could cause a ClassCastException
-                    this.cachedChunk = (Chunk) this.view.getExistingChunk(this.chunkX, this.chunkZ);
-                    if (this.cachedChunk != null) {
-                        this.cachedChunkSection = this.cachedChunk.getSectionArray()[this.chunkY];
+                    this.cachedChunk = this.view.getExistingChunk(this.chunkX, this.chunkZ);
+                    if (this.cachedChunk instanceof Chunk) {
+                        this.cachedChunkSection = ((Chunk) this.cachedChunk).getSectionArray()[this.chunkY];
+                    } else {
+                        this.cachedChunkSection = null;
                     }
                 }
                 //skip empty chunks and empty chunk sections
-            } while (this.cachedChunk == null || ChunkSection.isEmpty(this.cachedChunkSection));
+            } while (this.cachedChunk == null || (this.cachedChunk instanceof Chunk && ChunkSection.isEmpty(this.cachedChunkSection)));
 
             this.sectionOversizedBlocks = hasChunkSectionOversizedBlocks(this.cachedChunk, this.chunkY);
 
@@ -207,7 +216,12 @@ public class ChunkAwareBlockCollisionSweeper {
                 continue;
             }
 
-            final BlockState state = this.cachedChunkSection.getBlockState(x & 15, y & 15, z & 15);
+            final BlockState state;
+            if (this.cachedChunkSection != null) {
+                state = this.cachedChunkSection.getBlockState(x & 15, y & 15, z & 15);
+            } else {
+                state = this.cachedChunk.getBlockState(new BlockPos(x, y, z));
+            }
 
             if (!canInteractWithBlock(state, edgesHit)) {
                 continue;
@@ -280,9 +294,9 @@ public class ChunkAwareBlockCollisionSweeper {
      *
      * @return Whether there are any oversized blocks in the chunk section.
      */
-    private static boolean hasChunkSectionOversizedBlocks(Chunk chunk, int chunkY) {
-        if (OVERSIZED_BLOCK_COUNTING_ENABLED) {
-            ChunkSection section = chunk.getSectionArray()[chunkY];
+    private static boolean hasChunkSectionOversizedBlocks(BlockView chunk, int chunkY) {
+        if (OVERSIZED_BLOCK_COUNTING_ENABLED && chunk instanceof Chunk) {
+            ChunkSection section = ((Chunk) chunk).getSectionArray()[chunkY];
             return section != null && ((OversizedBlocksCounter) section).hasOversizedBlocks();
         }
         return true; //like vanilla, assume that a chunk section has oversized blocks, when the section mixin isn't loaded
