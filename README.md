@@ -9,28 +9,28 @@
 [![This is a fork](https://img.shields.io/badge/This%20is%20a%20fork-Support%20the%20original%20mod!-fcb95b)](https://github.com/CaffeineMC/lithium-fabric/)
 [![Architectury](https://img.shields.io/badge/built%20with-Architectury%20Loom-f95f1e)](https://github.com/architectury/architectury-loom)
 
-Meep Meep! (also known as Road Runner) is an **unofficial fork** of the popular performance-enhancing Fabric mod [Lithium](https://github.com/CaffeineMC/lithium-fabric) by jellysquid3 for the Forge mod loader, based on the [Architectury Loom](https://github.com/architectury/architectury-loom) toolchain.
+RoadRunner (also known as Meep Meep!) is an **unofficial fork** of the popular performance-enhancing Fabric mod [Lithium](https://github.com/CaffeineMC/lithium-fabric) by jellysquid3 for the Forge mod loader, based on the [Architectury Loom](https://github.com/architectury/architectury-loom) toolchain.
 This mod aims to optimise many areas of the game in order to provide better overall performance for both Minecraft **clients and servers**, while **not requiring the mod to be installed on both sides**.
 
-*(Note: Meep Meep!, as mentioned above is an unofficial fork and has thus not been endorsed by jellysquid3 or the CaffeineMC organisation. Please report any issues you have to **us only**, and we will forward them only if we are able to reproduce the problem on Fabric with the upstream version of Lithium!)*
+*(Note: RoadRunner, as mentioned above is an unofficial fork and has thus not been endorsed by jellysquid3 or the CaffeineMC organisation. Please report any issues you have to **us only**, and we will forward them only if we are able to reproduce the problem on Fabric with the upstream version of Lithium!)*
 
 ### Downloads
 
-You can currently find downloads for Meep Meep! through our [GitHub releases page](https://github.com/MaxNeedsSnacks/meep-meep/releases). A release on CurseForge is currently ~~not?~~ planned, but will take some time as we want to make sure this mod works **without any major issues** on Forge before pushing an initial build.
+You can currently find downloads for RoadRunner through our [GitHub releases page](https://github.com/MaxNeedsSnacks/roadrunner/releases). A release on CurseForge is currently ~~not?~~ planned, but will take some time as we want to make sure this mod works **without any major issues** on Forge before pushing an initial build.
 
 **That said, you have our express permission to include the GitHub releases builds of this mod in your CurseForge packs, and we will be asking to have those added to the approved non-CurseForge mods list, as well!**
 
 ### Installation instructions
 
-Meep Meep! can be installed like any other Forge mod by dragging it into your modded Minecraft instance's `mods` folder.
+RoadRunner can be installed like any other Forge mod by dragging it into your modded Minecraft instance's `mods` folder.
 
 ### Issues and Contributing
 
-If you'd like to get help with the mod, feel free to open an [issue](https://github.com/MaxNeedsSnacks/meep-meep/issues/) here on GitHub, and if you want to propose new features or otherwise contribute to the mod, we will gladly accept pull requests, as well!
+If you'd like to get help with the mod, feel free to open an [issue](https://github.com/MaxNeedsSnacks/roadrunner/issues/) here on GitHub, and if you want to propose new features or otherwise contribute to the mod, we will gladly accept pull requests, as well!
 
 ### Support the (original) developers
 
-Meep Meep! is only possible thanks to the many high-quality contributions made by the original Lithium developers, and as such, we would like to ask you to support *them*, instead! For more information, you can see [this section](https://github.com/CaffeineMC/lithium-fabric#support-the-developers) in the upstream repository's readme.
+RoadRunner is only possible thanks to the many high-quality contributions made by the original Lithium developers, and as such, we would like to ask you to support *them*, instead! For more information, you can see [this section](https://github.com/CaffeineMC/lithium-fabric#support-the-developers) in the upstream repository's readme.
 
 ---
 
@@ -38,14 +38,14 @@ Meep Meep! is only possible thanks to the many high-quality contributions made b
 
 ### What makes this mod different?
 
-One of the most important design goals in Meep Meep! is *correctness*. Unlike other mods which apply optimizations to the game, this mod does not sacrifice vanilla functionality or behavior in the name of raw speed. It's a no compromises' solution for those wanting to speed up their game, and as such, installing Meep Meep! should be completely transparent to the player.
+One of the most important design goals in RoadRunner is *correctness*. Unlike other mods which apply optimizations to the game, this mod does not sacrifice vanilla functionality or behavior in the name of raw speed. It's a no compromises' solution for those wanting to speed up their game, and as such, installing RoadRunner should be completely transparent to the player.
 
-If you do encounter an issue where we deviate from the norm (in this case both vanilla **and** default Forge behaviour), please don't hesitate to [submit an issue](https://github.com/MaxNeedsSnacks/meep-meep/issues/). Each patch is carefully checked to ensure vanilla parity, but after all, bugs are unavoidable.
+If you do encounter an issue where we deviate from the norm (in this case both vanilla **and** default Forge behaviour), please don't hesitate to [submit an issue](https://github.com/MaxNeedsSnacks/roadrunner/issues/). Each patch is carefully checked to ensure vanilla parity, but after all, bugs are unavoidable.
 
 ### Configuration
 
-Out of the box, no additional configuration is necessary once the mod has been installed. Meep Meep! makes use of a configuration override system which allows you to either forcefully disable problematic patches or enable incubating patches which are otherwise disabled by default. As such, an empty config file simply means you'd like to use the
-default configuration, which includes all stable optimizations by default. 
+Out of the box, no additional configuration is necessary once the mod has been installed. RoadRunner makes use of a configuration override system which allows you to either forcefully disable problematic patches or enable incubating patches which are otherwise disabled by default. As such, an empty config file simply means you'd like to use the
+default configuration, which includes all stable optimizations by default.
 
 For more detailed information on the different configuration file format and all available options, please see our [Wiki](https://github.com/MaxNeedsSnacks/roadrunner/wiki/Configuration-Files).
 
@@ -78,5 +78,5 @@ artifacts in `build/libs`.
 
 ### License
 
-Meep Meep!, in accordance with Lithium's original license is licensed under GNU LGPLv3, a free and open-source license. For more information, please see the
+RoadRunner, in accordance with Lithium's original license is licensed under GNU LGPLv3, a free and open-source license. For more information, please see the
 [license file](https://github.com/MaxNeedsSnacks/meep-meep/blob/1.16.x/forge/LICENSE.txt).
