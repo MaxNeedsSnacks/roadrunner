@@ -55,7 +55,7 @@ public class RoadRunnerRuleConfig {
         this.addMixinRule("chunk", true);
         this.addMixinRule("chunk.count_oversized_blocks", true);
         this.addMixinRule("chunk.entity_class_groups", true);
-        this.addMixinRule("chunk.no_locking", true);
+        this.addMixinRule("chunk.no_locking", false); // Disabled by default as it disables locking that is irrelevant in vanilla but may be (accidentally) used by mods
         this.addMixinRule("chunk.palette", true);
         this.addMixinRule("chunk.section_update_tracking", true);
         this.addMixinRule("chunk.serialization", true);
@@ -66,7 +66,7 @@ public class RoadRunnerRuleConfig {
         this.addMixinRule("entity", true);
         this.addMixinRule("entity.collisions", true);
         this.addMixinRule("entity.data_tracker", true);
-        this.addMixinRule("entity.data_tracker.no_locks", true);
+        this.addMixinRule("entity.data_tracker.no_locks", false); // Disabled by default, see chunk.no_locking
         this.addMixinRule("entity.data_tracker.use_arrays", true);
         this.addMixinRule("entity.fast_fluid_check", true);
         this.addMixinRule("entity.fast_suffocation_check", true);
