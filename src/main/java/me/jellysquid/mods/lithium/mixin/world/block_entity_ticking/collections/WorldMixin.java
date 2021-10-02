@@ -112,6 +112,12 @@ public abstract class WorldMixin implements WorldAccess {
 
                 BlockPos pos = entity.getPos();
 
+                World thisWorld = (World) (Object) this;
+                if (entity.getWorld() != thisWorld) {
+                    entity.setLocation(thisWorld, pos);
+                }
+                entity.onLoad();
+
                 // Avoid the double chunk lookup (isLoaded followed by getChunk) by simply inlining getChunk call
                 // pass this.isClient instead of false, so the updateListeners call is always executed on the client (like vanilla)
                 Chunk chunk = this.getChunk(pos.getX() >> 4, pos.getZ() >> 4, ChunkStatus.FULL, this.isClient);
