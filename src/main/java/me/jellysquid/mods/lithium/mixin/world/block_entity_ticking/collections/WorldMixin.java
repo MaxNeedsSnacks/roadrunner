@@ -30,10 +30,6 @@ import java.util.function.Supplier;
 
 @Mixin(World.class)
 public abstract class WorldMixin implements WorldAccess {
-    /*@Mutable
-    @Shadow
-    @Final
-    protected List<BlockEntity> unloadedBlockEntities;*/
     @Shadow
     @Final
     public boolean isClient;
@@ -65,8 +61,6 @@ public abstract class WorldMixin implements WorldAccess {
         // This won't guarantee mod compatibility, but at least it should fail loudly when it does
         this.blockEntities$lithium = new BlockEntityList(this.blockEntities, false);
         this.blockEntities = this.blockEntities$lithium;
-
-        /*this.unloadedBlockEntities = new HashedReferenceList<>(this.unloadedBlockEntities);*/
 
         this.pendingBlockEntities$lithium = new BlockEntityList(this.pendingBlockEntities, true);
         this.pendingBlockEntities = this.pendingBlockEntities$lithium;
