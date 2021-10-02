@@ -1,9 +1,9 @@
-name: 'Build Release (+ CurseForge)'
+name: 'Build Release'
 
 on:
   release:
     types:
-      - released
+      - published
 
 jobs:
   release:
@@ -16,25 +16,31 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 14
-      - uses: FabricMC/fabric-action-scripts@v1
+      - name: Generate changelog
+        if: github.event.prerelease == false
+        uses: FabricMC/fabric-action-scripts@v1
         id: changelog
         with:
           context: changelog
           workflow_id: release.yml
-      - name: Add Changelog
+      - name: Add Release Body
         id: update_release
         uses: tubone24/update_release@v1.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          body: ${{steps.changelog.outputs.changelog}}
+          body: ${{ github.event.prerelease == false && steps.changelog.outputs.changelog || 'This is a pre-release version of RoadRunner. Changelogs will not be automatically generated.' }}
       - name: Build and Upload with Gradle
-        run: ./gradlew build publish curseforge
+        run: ./gradlew build publish
         env:
           SAPS_TOKEN: ${{ secrets.SAPS_TOKEN }}
+          BUILD_RELEASE: ${{ github.event.prerelease == false }}
+      - name: Upload Release to Curseforge
+        if: github.event.prerelease == false
+        run: ./gradlew curseforge
+        env:
           CURSEFORGE_KEY: ${{ secrets.CURSE_API_KEY }}
           CHANGELOG: ${{ steps.changelog.outputs.changelog }}
-          BUILD_RELEASE: true
       - name: Upload assets to GitHub
         uses: AButler/upload-release-assets@v2.0
         with:
