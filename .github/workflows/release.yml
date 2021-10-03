@@ -79,9 +79,8 @@ jobs:
           tag_name: ${{ steps.read_version.outputs.value }}
           prerelease: github.event.inputs.prerelease == 'false'
           files: |
-            build/libs/*.jar
-            !build/libs/*-dev.jar
-            LICENSE
+            build/libs/!(*-dev).jar
+            LICENSE.txt
       - name: Upload Release to Curseforge
         if: github.event.inputs.prerelease == 'false'
         run: ./gradlew curseforge
