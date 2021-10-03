@@ -32,17 +32,20 @@ jobs:
       - uses: mukunku/tag-exists-action@v1.0.0
         id: version_exists
         with:
-          tag: ${{ steps.read_property.outputs.value }}
+          tag: ${{ steps.read_version.outputs.value }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Stop if version exists
-        if: ${{ steps.version_exists.outputs.exists == true }}
+        if: ${{ steps.version_exists.outputs.exists == 'true' }}
         uses: actions/github-script@v3
         with:
           script: |
             core.setFailed('Mod version already exists!')
   release:
     runs-on: ubuntu-latest
+    needs:
+      - validate-gradle
+      - validate-version
     steps:
       - uses: actions/checkout@v2
         with:
@@ -51,34 +54,38 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 14
+      - name: Get current mod version
+        id: read_version
+        uses: christian-draeger/read-properties@1.0.1
+        with:
+          path: 'gradle.properties'
+          property: 'mod_version'
       - name: Generate changelog
-        if: github.event.inputs.prerelease == false
+        if: github.event.inputs.prerelease == 'false'
         uses: FabricMC/fabric-action-scripts@v1
         id: changelog
         with:
           context: changelog
           workflow_id: release.yml
-      #- name: Add Release Body
-      #  id: update_release
-      #  uses: tubone24/update_release@v1.0
-      #  env:
-      #    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #  with:
-      #    body: ${{ github.event.inputs.prerelease == false && steps.changelog.outputs.changelog || 'This is a pre-release version of RoadRunner. Changelogs will not be automatically generated.' }}
       - name: Build and Release with Gradle
         run: ./gradlew build publish
         env:
           SAPS_TOKEN: ${{ secrets.SAPS_TOKEN }}
-          BUILD_RELEASE: ${{ github.event.inputs.prerelease == false }}
+          BUILD_RELEASE: ${{ github.event.inputs.prerelease == 'false' }}
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          body: ${{ github.event.inputs.prerelease == 'false' && steps.changelog.outputs.changelog || 'This is a pre-release version of RoadRunner. Changelogs will not be automatically generated.' }}
+          tag_name: ${{ steps.read_version.outputs.value }}
+          prerelease: github.event.inputs.prerelease == 'false'
+          files: |
+            build/libs/*.jar
+            !build/libs/*-dev.jar
+            LICENSE
       - name: Upload Release to Curseforge
-        if: github.event.inputs.prerelease == false
+        if: github.event.inputs.prerelease == 'false'
         run: ./gradlew curseforge
         env:
           CURSEFORGE_KEY: ${{ secrets.CURSE_API_KEY }}
           CHANGELOG: ${{ steps.changelog.outputs.changelog }}
           BUILD_RELEASE: true
-      #- name: Upload assets to GitHub
-      #  uses: AButler/upload-release-assets@v2.0
-      #  with:
-      #    files: 'build/libs/*.jar;!build/libs/*-dev.jar;LICENSE'
-      #    repo-token: ${{ secrets.GITHUB_TOKEN }}
