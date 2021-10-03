@@ -107,7 +107,6 @@ public class RoadRunnerRuleConfig {
         this.addMixinRule("world.block_entity_ticking", true);
         this.addMixinRule("world.block_entity_ticking.collections", true);
         this.addMixinRule("world.block_entity_ticking.should_tick_cache", true);
-        this.addMixinRule("world.block_entity_ticking.sleeping", true);
         this.addMixinRule("world.block_entity_ticking.support_cache", true);
         this.addMixinRule("world.chunk_access", true);
         this.addMixinRule("world.chunk_inline_block_access", true);
