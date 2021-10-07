@@ -241,18 +241,6 @@ public class BlockEntityList implements List<BlockEntity> {
     }
 
     @Override
-    public boolean retainAll(Collection<?> c) {
-        boolean modified = false;
-        // Virtually guaranteed CME???
-        for (BlockEntity blockEntity : this.allBlockEntities) {
-            if (!c.contains(blockEntity)) {
-                modified |= this.remove(blockEntity);
-            }
-        }
-        return modified;
-    }
-
-    @Override
     public void clear() {
         if (currentlyOffThread()) {
             // This should never happen in practice, if it does it should be easy to add support for it
@@ -264,6 +252,11 @@ public class BlockEntityList implements List<BlockEntity> {
             this.posMap.clear();
             this.posMapMulti.clear();
         }
+    }
+
+    @Override
+    public boolean retainAll(Collection<?> c) {
+        throw new UnsupportedOperationException();
     }
 
     @Override
