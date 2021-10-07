@@ -1,12 +1,16 @@
 package me.jellysquid.mods.lithium.common.util.collections;
 
+import com.google.common.base.Preconditions;
 import it.unimi.dsi.fastutil.longs.Long2ReferenceOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ReferenceLinkedOpenHashSet;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.CommandBlockBlockEntity;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.math.BlockPos;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
+import javax.annotation.Nullable;
 import java.util.*;
 
 @SuppressWarnings("NullableProblems")
@@ -21,7 +25,29 @@ public class BlockEntityList implements List<BlockEntity> {
     //and all of them are stored in posMapMulti using a List (in the order they were added)
     private final Long2ReferenceOpenHashMap<BlockEntity> posMap;
     private final Long2ReferenceOpenHashMap<List<BlockEntity>> posMapMulti;
-    public BlockEntityList(List<BlockEntity> list, boolean hasPositionLookup) {
+
+    // Rough safety net for off-thread modifications: Goals in order of priority:
+    //  1. No crashes on the "correct" thread. Crashes on wrong threads are acceptable
+    //  2. Minimal performance impact server-side (where World already prevents off-thread access)
+    //  3. Minimal performance impact for on-thread access client-side
+    //  4. Minimal performance impact for off-thread access when no off-thread modifications have
+    //  taken place "recently"
+    // The idea is to record off-thread modifications in a thread-safe queue. On any on-thread
+    // access the queue is added into the "main" state. If the queue is non-empty off-thread accesses
+    // will create a temporary copy of the list and process the queue there (this should be a very
+    // rare case in practice). This way the main thread never accesses the list while it is being
+    // modified (since no other thread ever modifies it). The performance impact is a single
+    // null-check per access server-side and a call to Thread.currentThread() and an atomic read
+    // on the client
+    @Nullable
+    private final Thread ownerThread;
+    // Queue of off-thread modifications. Only access this when synchronizing on it.
+    private final List<OffThreadOperation> offThreadModifications = new ArrayList<>();
+    // Used as a faster way of checking if offThreadModifications is empty. Using an enum instead
+    // of a bool to easily handle processing of the off-thread modification queue
+    private volatile ConcurrentState hasOffThreadModifications = ConcurrentState.CLEAN;
+
+    private BlockEntityList(boolean hasPositionLookup, boolean hasOwnerThread) {
         this.posMap = hasPositionLookup ? new Long2ReferenceOpenHashMap<>() : null;
         this.posMapMulti = hasPositionLookup ? new Long2ReferenceOpenHashMap<>() : null;
 
@@ -30,39 +56,82 @@ public class BlockEntityList implements List<BlockEntity> {
             this.posMapMulti.defaultReturnValue(null);
         }
 
+        this.ownerThread = hasOwnerThread ? Thread.currentThread() : null;
         this.allBlockEntities = new ReferenceLinkedOpenHashSet<>();
+    }
+
+    public BlockEntityList(List<BlockEntity> list, boolean hasPositionLookup, boolean hasOwnerThread) {
+        this(hasPositionLookup, hasOwnerThread);
         this.addAll(list);
+    }
+
+    private BlockEntityList(BlockEntityList original) {
+        this(original.posMap != null, true);
+        if (original.posMap != null) {
+            this.posMap.putAll(original.posMap);
+            this.posMapMulti.putAll(original.posMapMulti);
+        }
+        this.allBlockEntities.addAll(original.allBlockEntities);
+
+        synchronized (original.offThreadModifications) {
+            this.hasOffThreadModifications = original.hasOffThreadModifications;
+            this.offThreadModifications.addAll(original.offThreadModifications);
+        }
     }
 
     @Override
     public int size() {
-        return this.allBlockEntities.size();
+        if (!checkOffThreadModifications()) {
+            return this.allBlockEntities.size();
+        } else {
+            return copyWithChanges().size();
+        }
     }
 
     @Override
     public boolean isEmpty() {
-        return this.allBlockEntities.isEmpty();
+        if (!checkOffThreadModifications()) {
+            return this.allBlockEntities.isEmpty();
+        } else {
+            return copyWithChanges().isEmpty();
+        }
     }
 
     @Override
     public boolean contains(Object o) {
-        return this.allBlockEntities.contains(o);
+        if (!checkOffThreadModifications()) {
+            return this.allBlockEntities.contains(o);
+        } else {
+            return copyWithChanges().contains(o);
+        }
     }
 
     @Override
     public Iterator<BlockEntity> iterator() {
-        return this.allBlockEntities.iterator();
+        if (!checkOffThreadModifications()) {
+            return this.allBlockEntities.iterator();
+        } else {
+            return copyWithChanges().iterator();
+        }
     }
 
     @Override
     public Object[] toArray() {
-        return this.allBlockEntities.toArray();
+        if (!checkOffThreadModifications()) {
+            return this.allBlockEntities.toArray();
+        } else {
+            return copyWithChanges().toArray();
+        }
     }
 
     @Override
     @SuppressWarnings("SuspiciousToArrayCall")
     public <T> T[] toArray(T[] a) {
-        return this.allBlockEntities.toArray(a);
+        if (!checkOffThreadModifications()) {
+            return this.allBlockEntities.toArray(a);
+        } else {
+            return copyWithChanges().toArray(a);
+        }
     }
 
     @Override
@@ -71,10 +140,17 @@ public class BlockEntityList implements List<BlockEntity> {
     }
 
     private boolean addNoDoubleAdd(BlockEntity blockEntity, boolean exceptionOnDoubleAdd) {
+        if (currentlyOffThread()) {
+            // Off-thread adds are always treated as "if absent", otherwise the most typical case (race on
+            // getBlockEntity) would always crash
+            addOffThreadOperation(new OffThreadOperation(blockEntity, OperationType.ADD));
+            return true;
+        }
+        checkOffThreadModifications();
         boolean added = this.allBlockEntities.add(blockEntity);
         if (!added && exceptionOnDoubleAdd
                 //Ignore double add when we encounter vanilla's command block double add bug
-                && !( blockEntity instanceof CommandBlockBlockEntity)) {
+                && !(blockEntity instanceof CommandBlockBlockEntity)) {
             this.throwException(blockEntity);
         }
 
@@ -102,6 +178,11 @@ public class BlockEntityList implements List<BlockEntity> {
     public boolean remove(Object o) {
         if (o instanceof BlockEntity) {
             BlockEntity blockEntity = (BlockEntity) o;
+            if (currentlyOffThread()) {
+                addOffThreadOperation(new OffThreadOperation(blockEntity, OperationType.REMOVE));
+                return true;
+            }
+            checkOffThreadModifications();
             if (this.allBlockEntities.remove(o)) {
                 if (this.posMap != null) {
                     long pos = getEntityPos(blockEntity);
@@ -127,7 +208,11 @@ public class BlockEntityList implements List<BlockEntity> {
 
     @Override
     public boolean containsAll(Collection<?> c) {
-        return this.allBlockEntities.containsAll(c);
+        if (!checkOffThreadModifications()) {
+            return this.allBlockEntities.containsAll(c);
+        } else {
+            return copyWithChanges().containsAll(c);
+        }
     }
 
     @Override
@@ -158,6 +243,7 @@ public class BlockEntityList implements List<BlockEntity> {
     @Override
     public boolean retainAll(Collection<?> c) {
         boolean modified = false;
+        // Virtually guaranteed CME???
         for (BlockEntity blockEntity : this.allBlockEntities) {
             if (!c.contains(blockEntity)) {
                 modified |= this.remove(blockEntity);
@@ -168,6 +254,11 @@ public class BlockEntityList implements List<BlockEntity> {
 
     @Override
     public void clear() {
+        if (currentlyOffThread()) {
+            // This should never happen in practice, if it does it should be easy to add support for it
+            throw new UnsupportedOperationException();
+        }
+        checkOffThreadModifications();
         this.allBlockEntities.clear();
         if (this.posMap != null) {
             this.posMap.clear();
@@ -238,6 +329,11 @@ public class BlockEntityList implements List<BlockEntity> {
 
     //Methods only supported when posMap is present!
     public void markRemovedAndRemoveAllAtPosition(BlockPos blockPos) {
+        if (currentlyOffThread()) {
+            addOffThreadOperation(new OffThreadOperation(blockPos));
+            return;
+        }
+        checkOffThreadModifications();
         long pos = blockPos.asLong();
         BlockEntity blockEntity = this.posMap.remove(pos);
         if (blockEntity != null) {
@@ -255,6 +351,9 @@ public class BlockEntityList implements List<BlockEntity> {
     }
 
     public BlockEntity getFirstNonRemovedBlockEntityAtPosition(long pos) {
+        if (checkOffThreadModifications()) {
+            return copyWithChanges().getFirstNonRemovedBlockEntityAtPosition(pos);
+        }
         if (this.isEmpty()) {
             return null;
         }
@@ -274,5 +373,89 @@ public class BlockEntityList implements List<BlockEntity> {
             }
         }
         return null;
+    }
+
+    public boolean checkOffThreadModifications() {
+        if (ownerThread == null) {
+            // Off-thread modifications are not supported, so there aren't any to consider
+            return false;
+        }
+        if (ownerThread != Thread.currentThread()) {
+            // Currently off-thread
+            return hasOffThreadModifications != ConcurrentState.CLEAN;
+        }
+        // Treat "CLEANING" as clean if on-thread to stop this method from recursing forever
+        if (hasOffThreadModifications != ConcurrentState.DIRTY) {
+            // There are no off-thread modifications
+            return false;
+        }
+        synchronized (offThreadModifications) {
+            hasOffThreadModifications = ConcurrentState.CLEANING;
+            for (OffThreadOperation op : offThreadModifications) {
+                switch (op.type) {
+                    case ADD:
+                        addIfAbsent(Preconditions.checkNotNull(op.blockEntity));
+                        break;
+                    case REMOVE:
+                        remove(Preconditions.checkNotNull(op.blockEntity));
+                        break;
+                    case REMOVE_AT:
+                        markRemovedAndRemoveAllAtPosition(Preconditions.checkNotNull(op.pos));
+                        break;
+                }
+            }
+            hasOffThreadModifications = ConcurrentState.CLEAN;
+            offThreadModifications.clear();
+        }
+
+        // we just merged all off-thread modifications into the on-thread state
+        return false;
+    }
+
+    private boolean currentlyOffThread() {
+        return ownerThread != null && ownerThread != Thread.currentThread();
+    }
+
+    private void addOffThreadOperation(OffThreadOperation op) {
+        synchronized (offThreadModifications) {
+            offThreadModifications.add(op);
+            hasOffThreadModifications = ConcurrentState.DIRTY;
+        }
+    }
+
+    private BlockEntityList copyWithChanges() {
+        BlockEntityList result = new BlockEntityList(this);
+        Preconditions.checkState(!result.checkOffThreadModifications());
+        return result;
+    }
+
+    private static class OffThreadOperation {
+        private final BlockEntity blockEntity;
+        private final BlockPos pos;
+        private final OperationType type;
+
+        private OffThreadOperation(BlockEntity blockEntity, OperationType type) {
+            this.blockEntity = blockEntity;
+            this.pos = null;
+            this.type = type;
+        }
+
+        private OffThreadOperation(BlockPos at) {
+            this.blockEntity = null;
+            this.pos = at;
+            this.type = OperationType.REMOVE_AT;
+        }
+    }
+
+    private enum OperationType {
+        ADD,
+        REMOVE,
+        REMOVE_AT
+    }
+
+    private enum ConcurrentState {
+        CLEAN,
+        DIRTY,
+        CLEANING
     }
 }
