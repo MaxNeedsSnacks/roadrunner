@@ -81,7 +81,7 @@ public class BlockEntityList implements List<BlockEntity> {
 
     @Override
     public int size() {
-        if (!checkOffThreadModifications()) {
+        if (!checkOffThreadModifications(true)) {
             return this.allBlockEntities.size();
         } else {
             return copyWithChanges().size();
@@ -90,7 +90,7 @@ public class BlockEntityList implements List<BlockEntity> {
 
     @Override
     public boolean isEmpty() {
-        if (!checkOffThreadModifications()) {
+        if (!checkOffThreadModifications(true)) {
             return this.allBlockEntities.isEmpty();
         } else {
             return copyWithChanges().isEmpty();
@@ -99,7 +99,7 @@ public class BlockEntityList implements List<BlockEntity> {
 
     @Override
     public boolean contains(Object o) {
-        if (!checkOffThreadModifications()) {
+        if (!checkOffThreadModifications(true)) {
             return this.allBlockEntities.contains(o);
         } else {
             return copyWithChanges().contains(o);
@@ -108,7 +108,7 @@ public class BlockEntityList implements List<BlockEntity> {
 
     @Override
     public Iterator<BlockEntity> iterator() {
-        if (!checkOffThreadModifications()) {
+        if (!checkOffThreadModifications(true)) {
             return this.allBlockEntities.iterator();
         } else {
             return copyWithChanges().iterator();
@@ -117,7 +117,7 @@ public class BlockEntityList implements List<BlockEntity> {
 
     @Override
     public Object[] toArray() {
-        if (!checkOffThreadModifications()) {
+        if (!checkOffThreadModifications(true)) {
             return this.allBlockEntities.toArray();
         } else {
             return copyWithChanges().toArray();
@@ -127,7 +127,7 @@ public class BlockEntityList implements List<BlockEntity> {
     @Override
     @SuppressWarnings("SuspiciousToArrayCall")
     public <T> T[] toArray(T[] a) {
-        if (!checkOffThreadModifications()) {
+        if (!checkOffThreadModifications(true)) {
             return this.allBlockEntities.toArray(a);
         } else {
             return copyWithChanges().toArray(a);
@@ -146,7 +146,7 @@ public class BlockEntityList implements List<BlockEntity> {
             addOffThreadOperation(new OffThreadOperation(blockEntity, OperationType.ADD));
             return true;
         }
-        checkOffThreadModifications();
+        checkOffThreadModifications(false);
         boolean added = this.allBlockEntities.add(blockEntity);
         if (!added && exceptionOnDoubleAdd
                 //Ignore double add when we encounter vanilla's command block double add bug
@@ -182,7 +182,7 @@ public class BlockEntityList implements List<BlockEntity> {
                 addOffThreadOperation(new OffThreadOperation(blockEntity, OperationType.REMOVE));
                 return true;
             }
-            checkOffThreadModifications();
+            checkOffThreadModifications(false);
             if (this.allBlockEntities.remove(o)) {
                 if (this.posMap != null) {
                     long pos = getEntityPos(blockEntity);
@@ -208,7 +208,7 @@ public class BlockEntityList implements List<BlockEntity> {
 
     @Override
     public boolean containsAll(Collection<?> c) {
-        if (!checkOffThreadModifications()) {
+        if (!checkOffThreadModifications(true)) {
             return this.allBlockEntities.containsAll(c);
         } else {
             return copyWithChanges().containsAll(c);
@@ -246,7 +246,7 @@ public class BlockEntityList implements List<BlockEntity> {
             // This should never happen in practice, if it does it should be easy to add support for it
             throw new UnsupportedOperationException();
         }
-        checkOffThreadModifications();
+        checkOffThreadModifications(false);
         this.allBlockEntities.clear();
         if (this.posMap != null) {
             this.posMap.clear();
@@ -326,7 +326,7 @@ public class BlockEntityList implements List<BlockEntity> {
             addOffThreadOperation(new OffThreadOperation(blockPos));
             return;
         }
-        checkOffThreadModifications();
+        checkOffThreadModifications(false);
         long pos = blockPos.asLong();
         BlockEntity blockEntity = this.posMap.remove(pos);
         if (blockEntity != null) {
@@ -344,7 +344,7 @@ public class BlockEntityList implements List<BlockEntity> {
     }
 
     public BlockEntity getFirstNonRemovedBlockEntityAtPosition(long pos) {
-        if (checkOffThreadModifications()) {
+        if (checkOffThreadModifications(true)) {
             return copyWithChanges().getFirstNonRemovedBlockEntityAtPosition(pos);
         }
         if (this.isEmpty()) {
@@ -368,7 +368,7 @@ public class BlockEntityList implements List<BlockEntity> {
         return null;
     }
 
-    public boolean checkOffThreadModifications() {
+    public boolean checkOffThreadModifications(boolean isReadOnly) {
         if (ownerThread == null) {
             // Off-thread modifications are not supported, so there aren't any to consider
             return false;
@@ -378,8 +378,11 @@ public class BlockEntityList implements List<BlockEntity> {
             return hasOffThreadModifications != ConcurrentState.CLEAN;
         }
         // Treat "CLEANING" as clean if on-thread to stop this method from recursing forever
-        if (hasOffThreadModifications != ConcurrentState.DIRTY) {
-            // There are no off-thread modifications
+        if (isReadOnly || hasOffThreadModifications != ConcurrentState.DIRTY) {
+            // Either: There are no off-thread modifications OR
+            // When read-only and on-thread, pretend there aren't any modifications. Merging modifications in read
+            // operations turns them into write operations (causing CMEs), they will be merged anyway at the end of the
+            // tick or the next write, and handling modifications without modifying the main list is slow
             return false;
         }
         synchronized (offThreadModifications) {
@@ -418,7 +421,7 @@ public class BlockEntityList implements List<BlockEntity> {
 
     private BlockEntityList copyWithChanges() {
         BlockEntityList result = new BlockEntityList(this);
-        Preconditions.checkState(!result.checkOffThreadModifications());
+        Preconditions.checkState(!result.checkOffThreadModifications(false));
         return result;
     }
 

@@ -99,8 +99,8 @@ public abstract class WorldMixin implements WorldAccess {
         Profiler profiler = this.profiler.get();
         profiler.push("pendingBlockEntities$lithium");
 
-        this.blockEntities$lithium.checkOffThreadModifications();
-        this.pendingBlockEntities$lithium.checkOffThreadModifications();
+        this.blockEntities$lithium.checkOffThreadModifications(false);
+        this.pendingBlockEntities$lithium.checkOffThreadModifications(false);
 
         // The usage of a for-index loop is invalid with our optimized implementation, so use an iterator here
         // The overhead of this is essentially non-zero and doesn't matter in this code.
