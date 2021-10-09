@@ -31,6 +31,9 @@ import java.util.function.Supplier;
 @Mixin(World.class)
 public abstract class WorldMixin implements WorldAccess {
     @Shadow
+    public abstract boolean isClient();
+
+    @Shadow
     @Final
     public boolean isClient;
     @Mutable
@@ -59,10 +62,10 @@ public abstract class WorldMixin implements WorldAccess {
                         Supplier<Profiler> supplier, boolean bl, boolean bl2, long l, CallbackInfo ci) {
         // Replace the fallback collections with our types as well
         // This won't guarantee mod compatibility, but at least it should fail loudly when it does
-        this.blockEntities$lithium = new BlockEntityList(this.blockEntities, false);
+        this.blockEntities$lithium = new BlockEntityList(this.blockEntities, false, isClient);
         this.blockEntities = this.blockEntities$lithium;
 
-        this.pendingBlockEntities$lithium = new BlockEntityList(this.pendingBlockEntities, true);
+        this.pendingBlockEntities$lithium = new BlockEntityList(this.pendingBlockEntities, true, isClient);
         this.pendingBlockEntities = this.pendingBlockEntities$lithium;
     }
 
@@ -95,6 +98,9 @@ public abstract class WorldMixin implements WorldAccess {
     private void postBlockEntityTick(CallbackInfo ci) {
         Profiler profiler = this.profiler.get();
         profiler.push("pendingBlockEntities$lithium");
+
+        this.blockEntities$lithium.checkOffThreadModifications(false);
+        this.pendingBlockEntities$lithium.checkOffThreadModifications(false);
 
         // The usage of a for-index loop is invalid with our optimized implementation, so use an iterator here
         // The overhead of this is essentially non-zero and doesn't matter in this code.
