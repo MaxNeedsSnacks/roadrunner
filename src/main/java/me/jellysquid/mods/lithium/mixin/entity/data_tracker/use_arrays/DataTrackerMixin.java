@@ -1,6 +1,7 @@
 package me.jellysquid.mods.lithium.mixin.entity.data_tracker.use_arrays;
 
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import me.jellysquid.mods.lithium.common.util.collections.CopyOnWriteI2OOpenHashMap;
+import me.jellysquid.mods.lithium.common.util.lock.NullReadBasicWriteLock;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.data.DataTracker;
 import net.minecraft.entity.data.TrackedData;
@@ -23,8 +24,6 @@ import java.util.concurrent.locks.ReadWriteLock;
  */
 @Mixin(DataTracker.class)
 public abstract class DataTrackerMixin {
-    private static final int DEFAULT_ENTRY_COUNT = 10, GROW_FACTOR = 8;
-
     @Mutable
     @Shadow
     @Final
@@ -32,12 +31,14 @@ public abstract class DataTrackerMixin {
 
     @Shadow
     @Final
+    @Mutable
     private ReadWriteLock lock;
 
     /**
      * Mirrors the vanilla backing entries map. Each DataTracker.Entry can be accessed in this array through its ID.
+     * Copy-on-write.
      **/
-    private DataTracker.Entry<?>[] entriesArray = new DataTracker.Entry<?>[DEFAULT_ENTRY_COUNT];
+    private volatile DataTracker.Entry<?>[] entriesArray = new DataTracker.Entry<?>[0];
 
     /**
      * Re-initialize the backing entries map with an optimized variant to speed up iteration in packet code and to
@@ -45,7 +46,10 @@ public abstract class DataTrackerMixin {
      */
     @Inject(method = "<init>", at = @At(value = "RETURN"))
     private void reinit(Entity trackedEntity, CallbackInfo ci) {
-        this.entries = new Int2ObjectOpenHashMap<>(this.entries);
+        this.entries = new CopyOnWriteI2OOpenHashMap<>(this.entries);
+        // Read lock is a null lock (CoW removes need for synchronization there)
+        // Write lock is a "basic" lock to synchronize CoW updates
+        this.lock = new NullReadBasicWriteLock();
     }
 
     /**
@@ -64,22 +68,17 @@ public abstract class DataTrackerMixin {
         int k = (int) keyRaw;
         DataTracker.Entry<?> v = (DataTracker.Entry<?>) valueRaw;
 
-        DataTracker.Entry<?>[] storage = this.entriesArray;
+        // Create sufficiently large copy of array
+        DataTracker.Entry<?>[] storage = Arrays.copyOf(this.entriesArray, Math.max(k + 1, this.entriesArray.length));
 
-        // Check if we need to grow the backing array to accommodate the new key range
-        if (storage.length <= k) {
-            // Grow the array to accommodate 8 entries after this one, but limit it to never be larger
-            // than 256 entries as per the vanilla limit
-            int newSize = Math.min(k + GROW_FACTOR, 256);
-
-            this.entriesArray = storage = Arrays.copyOf(storage, newSize);
-        }
-
-        // Update the storage
+        // Update the new entry
         storage[k] = v;
+        // publish results, first the vanilla map (now CoW, so put implicitly publishes), then our array.
+        // Order is important here, all methods can fall back to the vanilla map, but not all can use the array.
+        Object result = this.entries.put(k, v);
+        this.entriesArray = storage;
 
-        // Ensure that the vanilla backing storage is still updated appropriately
-        return this.entries.put(k, v);
+        return result;
     }
 
     /**
@@ -88,8 +87,6 @@ public abstract class DataTrackerMixin {
      */
     @Overwrite
     public <T> DataTracker.Entry<T> getEntry(TrackedData<T> data) {
-        this.lock.readLock().lock();
-
         try {
             DataTracker.Entry<?>[] array = this.entriesArray;
 
@@ -99,8 +96,11 @@ public abstract class DataTrackerMixin {
             // accessing an array with an invalid pointer will throw a OOB exception, where-as a HashMap would simply
             // return null. We check this case (which should be free, even if so insignificant, as the subsequent bounds
             // check will hopefully be eliminated)
-            if (id < 0 || id >= array.length) {
-                return null;
+            if (id < 0 || id >= array.length || array[id] == null) {
+                // Fall back to vanilla map if the array did not have the entry. This should only ever happen when
+                // racing between adding an entry and getting it.
+                //noinspection unchecked,SuspiciousMethodCalls
+                return (DataTracker.Entry<T>) this.entries.get(data);
             }
 
             // This cast can fail if trying to access a entry which doesn't belong to this tracker, as the ID could
@@ -110,8 +110,6 @@ public abstract class DataTrackerMixin {
         } catch (Throwable cause) {
             // Move to another method so this function can be in-lined better
             throw onGetException(cause, data);
-        } finally {
-            this.lock.readLock().unlock();
         }
     }
 
