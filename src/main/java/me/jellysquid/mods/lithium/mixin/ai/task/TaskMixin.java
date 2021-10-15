@@ -31,7 +31,7 @@ public class TaskMixin<E extends LivingEntity> {
      * @author JellySquid
      */
     @Overwrite
-    private boolean hasRequiredMemoryState(E entity) {
+    public boolean hasRequiredMemoryState(E entity) {
         Iterable<Reference2ObjectMap.Entry<MemoryModuleType<?>, MemoryModuleState>> iterable =
                 Reference2ObjectMaps.fastIterable((Reference2ObjectOpenHashMap<MemoryModuleType<?>, MemoryModuleState>) this.requiredMemoryStates);
 

@@ -65,7 +65,7 @@ public abstract class PalettedContainerMixin<T> {
      */
     @SuppressWarnings({"unchecked", "ConstantConditions"})
     @Overwrite
-    private void setPaletteSize(int size) {
+    public void setPaletteSize(int size) {
         if (size != this.paletteSize) {
             this.paletteSize = size;
 
