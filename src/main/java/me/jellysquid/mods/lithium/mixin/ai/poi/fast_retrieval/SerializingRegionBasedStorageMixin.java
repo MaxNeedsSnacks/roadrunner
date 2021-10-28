@@ -89,7 +89,10 @@ public abstract class SerializingRegionBasedStorageMixin<R> implements RegionBas
         }
 
         return flags.stream()
-                .mapToObj((chunkY) -> this.loadedElements.get(ChunkSectionPos.asLong(chunkX, chunkY, chunkZ)).orElse(null))
+                .mapToObj((chunkY) -> {
+                    Optional<R> elem = this.loadedElements.get(ChunkSectionPos.asLong(chunkX, chunkY, chunkZ));
+                    return elem == null ? null : elem.orElse(null);
+                })
                 .filter(Objects::nonNull);
     }
 
