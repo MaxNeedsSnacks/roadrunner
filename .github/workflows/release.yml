@@ -74,7 +74,7 @@ jobs:
         with:
           body: ${{ github.event.inputs.prerelease == 'false' && steps.changelog.outputs.changelog || 'This is a pre-release version of RoadRunner. Changelogs will not be automatically generated.' }}
           tag_name: ${{ needs.validate-version.outputs.version }}
-          prerelease: github.event.inputs.prerelease == 'false'
+          prerelease: ${{ github.event.inputs.prerelease != 'false' }}
           files: |
             build/libs/!(*-dev).jar
             LICENSE.txt
