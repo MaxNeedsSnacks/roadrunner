@@ -1,12 +1,12 @@
 package me.jellysquid.mods.lithium.mixin.ai.poi.fast_retrieval;
 
-import com.google.common.base.Preconditions;
 import com.mojang.datafixers.DataFixer;
 import com.mojang.serialization.Codec;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import me.jellysquid.mods.lithium.common.util.Collector;
 import me.jellysquid.mods.lithium.common.util.collections.ListeningLong2ObjectOpenHashMap;
+import me.jellysquid.mods.lithium.common.world.interests.RegionBasedStorageColumn;
 import me.jellysquid.mods.lithium.common.world.interests.RegionBasedStorageSectionAccess;
 import net.minecraft.datafixer.DataFixTypes;
 import net.minecraft.util.math.ChunkPos;
@@ -41,7 +41,7 @@ public abstract class SerializingRegionBasedStorageMixin<R> implements RegionBas
     @Shadow
     protected abstract void loadDataAt(ChunkPos pos);
 
-    private Long2ObjectOpenHashMap<BitSet> columns;
+    private Long2ObjectOpenHashMap<RegionBasedStorageColumn> columns;
 
     @Inject(method = "<init>", at = @At("RETURN"))
     private void init(File directory, Function<Runnable, Codec<R>> function, Function<Runnable, R> function2, DataFixer dataFixer, DataFixTypes dataFixTypes, boolean sync, CallbackInfo ci) {
@@ -50,30 +50,34 @@ public abstract class SerializingRegionBasedStorageMixin<R> implements RegionBas
     }
 
     private void onEntryRemoved(long key, Optional<R> value) {
-        // NO-OP... vanilla never removes anything, leaking entries.
-        // We might want to fix this.
-        Preconditions.checkState(
-                !value.isPresent(), "This is only called as part of \"getOrCreate\" in vanilla!"
-        );
+        int y = ChunkSectionPos.unpackY(key);
+
+        if (!isSectionValid(y)) {
+            return;
+        }
+
+        long pos = getChunkFromSection(key);
+        RegionBasedStorageColumn flags = this.columns.get(pos);
+
+        if (flags != null && flags.clear(y)) {
+            this.columns.remove(pos);
+        }
     }
 
     private void onEntryAdded(long key, Optional<R> value) {
         int y = ChunkSectionPos.unpackY(key);
 
         // We only care about items belonging to a valid sub-chunk
-        if (y < 0 || y >= 16) {
+        if (!isSectionValid(y)) {
             return;
         }
 
-        int x = ChunkSectionPos.unpackX(key);
-        int z = ChunkSectionPos.unpackZ(key);
+        long pos = getChunkFromSection(key);
 
-        long pos = ChunkPos.toLong(x, z);
-
-        BitSet flags = this.columns.get(pos);
+        RegionBasedStorageColumn flags = this.columns.get(pos);
 
         if (flags == null) {
-            this.columns.put(pos, flags = new BitSet(16));
+            this.columns.put(pos, flags = new RegionBasedStorageColumn());
         }
 
         flags.set(y, value.isPresent());
@@ -81,31 +85,28 @@ public abstract class SerializingRegionBasedStorageMixin<R> implements RegionBas
 
     @Override
     public Stream<R> getWithinChunkColumn(int chunkX, int chunkZ) {
-        BitSet flags = this.getCachedColumnInfo(chunkX, chunkZ);
+        RegionBasedStorageColumn flags = this.getCachedColumnInfo(chunkX, chunkZ);
 
         // No items are present in this column
-        if (flags.isEmpty()) {
+        if (flags.noSectionsPresent()) {
             return Stream.empty();
         }
 
-        return flags.stream()
-                .mapToObj((chunkY) -> {
-                    Optional<R> elem = this.loadedElements.get(ChunkSectionPos.asLong(chunkX, chunkY, chunkZ));
-                    return elem == null ? null : elem.orElse(null);
-                })
+        return flags.nonEmptySections()
+                .mapToObj((chunkY) -> this.loadedElements.get(ChunkSectionPos.asLong(chunkX, chunkY, chunkZ)).orElse(null))
                 .filter(Objects::nonNull);
     }
 
     @Override
     public boolean collectWithinChunkColumn(int chunkX, int chunkZ, Collector<R> consumer) {
-        BitSet flags = this.getCachedColumnInfo(chunkX, chunkZ);
+        RegionBasedStorageColumn flags = this.getCachedColumnInfo(chunkX, chunkZ);
 
         // No items are present in this column
-        if (flags.isEmpty()) {
+        if (flags.noSectionsPresent()) {
             return true;
         }
 
-        for (int chunkY = flags.nextSetBit(0); chunkY >= 0; chunkY = flags.nextSetBit(chunkY + 1)) {
+        for (int chunkY = flags.nextNonEmptySection(0); chunkY >= 0; chunkY = flags.nextNonEmptySection(chunkY + 1)) {
             R obj = this.loadedElements.get(ChunkSectionPos.asLong(chunkX, chunkY, chunkZ)).orElse(null);
 
             if (obj != null && !consumer.collect(obj)) {
@@ -116,10 +117,10 @@ public abstract class SerializingRegionBasedStorageMixin<R> implements RegionBas
         return true;
     }
 
-    private BitSet getCachedColumnInfo(int chunkX, int chunkZ) {
+    private RegionBasedStorageColumn getCachedColumnInfo(int chunkX, int chunkZ) {
         long pos = ChunkPos.toLong(chunkX, chunkZ);
 
-        BitSet flags = this.getColumnInfo(pos, false);
+        RegionBasedStorageColumn flags = this.getColumnInfo(pos, false);
 
         if (flags != null) {
             return flags;
@@ -130,13 +131,23 @@ public abstract class SerializingRegionBasedStorageMixin<R> implements RegionBas
         return this.getColumnInfo(pos, true);
     }
 
-    private BitSet getColumnInfo(long pos, boolean required) {
-        BitSet set = this.columns.get(pos);
+    private RegionBasedStorageColumn getColumnInfo(long pos, boolean required) {
+        RegionBasedStorageColumn set = this.columns.get(pos);
 
         if (set == null && required) {
             throw new NullPointerException("No data is present for column: " + new ChunkPos(pos));
         }
 
         return set;
+    }
+
+    private static long getChunkFromSection(long section) {
+        int x = ChunkSectionPos.unpackX(section);
+        int z = ChunkSectionPos.unpackZ(section);
+        return ChunkPos.toLong(x, z);
+    }
+
+    private static boolean isSectionValid(int y) {
+        return y >= 0 && y < RegionBasedStorageColumn.SECTIONS_IN_CHUNK;
     }
 }
