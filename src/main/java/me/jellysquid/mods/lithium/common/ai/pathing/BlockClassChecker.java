@@ -5,8 +5,10 @@ import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.BlockView;
 import net.minecraftforge.common.extensions.IForgeBlock;
+import net.minecraftforge.fml.loading.moddiscovery.ModClassVisitor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.objectweb.asm.ClassVisitor;
 
 import java.lang.reflect.Method;
 import java.util.Map;
@@ -35,6 +37,8 @@ public class BlockClassChecker {
     }
 
     private static Function<Class<?>, Boolean> hasNonstandardImplementation(String name, Class<?>... args) {
+        // FIXME: This method will error for mods that override client-side methods,
+        //  find an alternative way to check for non-standard implementations than this!
         return blockClass -> {
             try {
                 // We know the behavior of the default implementation in IForgeBlock, any other
@@ -42,21 +46,14 @@ public class BlockClassChecker {
                 Method dynamicGetType = blockClass.getMethod(name, args);
                 return dynamicGetType.getDeclaringClass() != IForgeBlock.class;
             } catch (ReflectiveOperationException | RuntimeException e) {
-                // Most likely means someone forgot to add their environment annotations
                 final String erroredClass = blockClass.getName();
-
-                LOGGER.warn("Block Class {} could not be analysed: {}", erroredClass, e.getMessage());
-                LOGGER.warn("Assuming the worst outcome, we're not going to override any behaviour here!");
-                LOGGER.warn("(If the class above belongs to a mod, they probably forgot to annotate their client-only code).");
+                LOGGER.debug("Block Class {} could not be analysed: {}", erroredClass, e.getMessage());
+                LOGGER.debug("Assuming the worst outcome, we're not going to override any behaviour here!");
                 return true;
             } catch (Throwable e) {
-                // It's likely that someone forgot to add their environment annotations,
-                // but either way we should assume the worst (non-crashing) outcome here!
                 final String erroredClass = blockClass.getName();
-
-                LOGGER.warn("Block Class {} could not be analysed because of a {}!" +
+                LOGGER.debug("Block Class {} could not be analysed because of a {}!" +
                         " Assuming the worst outcome, we're not going to override any behaviour here.", erroredClass, e.toString());
-                LOGGER.warn("(If the class above belongs to a mod, they probably forgot to annotate their client-only code).");
                 return true;
             }
         };
