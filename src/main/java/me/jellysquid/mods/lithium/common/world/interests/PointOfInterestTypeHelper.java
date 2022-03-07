@@ -11,7 +11,7 @@ import net.minecraft.world.poi.PointOfInterestType;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.minecraftforge.fml.event.lifecycle.FMLLoadCompleteEvent;
 
 import java.util.Map;
 import java.util.Set;
@@ -30,17 +30,24 @@ public class PointOfInterestTypeHelper {
     }
 
     @SubscribeEvent
-    public static void setup(FMLCommonSetupEvent ev) {
+    public static void setup(FMLLoadCompleteEvent ev) {
         if (!EnabledMarker.class.isAssignableFrom(PointOfInterestStorage.class)) {
             return;
         }
-        if (TYPES != null) {
-            throw new IllegalStateException("Already initialized");
-        }
-        Map<BlockState, PointOfInterestType> blockstatePOIMap = PointOfInterestTypeAccess.getBlockStateToPointOfInterestType();
-        blockstatePOIMap = new Reference2ReferenceOpenHashMap<>(blockstatePOIMap);
-        PointOfInterestTypeAccess.setBlockStateToPointOfInterestType(blockstatePOIMap);
+        ev.enqueueWork(() -> {
+            if (TYPES != null) {
+                throw new IllegalStateException("Already initialized");
+            }
+            Map<BlockState, PointOfInterestType> blockstatePOIMap = PointOfInterestTypeAccess.getBlockStateToPointOfInterestType();
+            blockstatePOIMap = new Reference2ReferenceOpenHashMap<>(blockstatePOIMap);
+            PointOfInterestTypeAccess.setBlockStateToPointOfInterestType(blockstatePOIMap);
 
-        TYPES = SetFactory.createFastRefBasedCopy(blockstatePOIMap.keySet());
+            TYPES = SetFactory.createFastRefBasedCopy(blockstatePOIMap.keySet());
+        }).exceptionally(throwable -> {
+            if (throwable instanceof RuntimeException) {
+                throw (RuntimeException) throwable;
+            }
+            throw new RuntimeException(throwable);
+        });
     }
 }
