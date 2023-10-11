@@ -31,7 +31,7 @@ public class SpawnSettingsMixin {
      * O(1) instead of O(n) and providing another boost when lists get large. Since a simple wrapper type is used, this
      * should provide good compatibility with other mods which modify spawn entries.
      */
-    @Inject(method = "<init>", at = @At("RETURN"))
+    @Inject(method = "<init>(FLjava/util/Map;Ljava/util/Map;Z)V", at = @At("RETURN"))
     private void reinit(float creatureSpawnProbability, Map<SpawnGroup, List<SpawnSettings.SpawnEntry>> spawners, Map<EntityType<?>, SpawnSettings.SpawnDensity> spawnCosts, boolean playerSpawnFriendly, CallbackInfo ci) {
         Map<SpawnGroup, List<SpawnSettings.SpawnEntry>> spawns = Maps.newEnumMap(SpawnGroup.class);
 
