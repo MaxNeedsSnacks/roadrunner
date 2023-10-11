@@ -29,7 +29,7 @@ public class TheEndBiomeSourceMixin {
     /**
      * Use our fast cache instead of vanilla's uncached noise generation.
      */
-    @Redirect(method = "getBiomeForNoiseGen", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/biome/source/TheEndBiomeSource;getNoiseAt(Lnet/minecraft/util/math/noise/SimplexNoiseSampler;II)F"))
+    @Redirect(method = "getBiomeForNoiseGen", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/biome/source/TheEndBiomeSource;getNoiseAt(Lnet/minecraft/util/math/noise/SimplexNoiseSampler;II)F"), require = 0)
     private float handleNoiseSample(SimplexNoiseSampler simplexNoiseSampler, int x, int z) {
         return this.tlCache.get().getNoiseAt(x, z);
     }
