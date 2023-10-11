@@ -80,13 +80,8 @@ public abstract class GoalSelectorMixin {
      */
     private void stopGoals() {
         for (PrioritizedGoal goal : this.goals) {
-            // Filter out goals which are not running
-            if (!goal.isRunning()) {
-                continue;
-            }
-
-            // If the goal shouldn't continue or any of its controls have been disabled, then stop the goal
-            if (!goal.shouldContinue() || this.areControlsDisabled(goal)) {
+            // If the goal is not running, shouldn't continue or any of its controls have been disabled, then stop the goal
+            if (!goal.isRunning() || !goal.shouldContinue() || this.areControlsDisabled(goal)) {
                 goal.stop();
             }
         }
