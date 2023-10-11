@@ -4,6 +4,7 @@ import com.mojang.datafixers.util.Either;
 import me.jellysquid.mods.lithium.common.world.chunk.ChunkHolderExtended;
 import net.minecraft.server.world.ChunkHolder;
 import net.minecraft.world.chunk.Chunk;
+import net.minecraft.world.chunk.WorldChunk;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -16,6 +17,9 @@ public class ChunkHolderMixin implements ChunkHolderExtended {
     @Shadow
     @Final
     private AtomicReferenceArray<CompletableFuture<Either<Chunk, ChunkHolder.Unloaded>>> futuresByStatus;
+
+    @Shadow
+    WorldChunk currentlyLoading;
 
     private long lastRequestTime;
 
@@ -35,5 +39,10 @@ public class ChunkHolderMixin implements ChunkHolderExtended {
         this.lastRequestTime = time;
 
         return prev != time;
+    }
+
+    @Override
+    public WorldChunk getCurrentlyLoading() {
+        return this.currentlyLoading;
     }
 }

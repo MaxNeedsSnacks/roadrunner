@@ -3,6 +3,7 @@ package me.jellysquid.mods.lithium.common.world.chunk;
 import com.mojang.datafixers.util.Either;
 import net.minecraft.server.world.ChunkHolder;
 import net.minecraft.world.chunk.Chunk;
+import net.minecraft.world.chunk.WorldChunk;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -25,4 +26,6 @@ public interface ChunkHolderExtended {
      * @return True if the chunk needs a new ticket to be created in order to retain it, otherwise false
      */
     boolean updateLastAccessTime(long time);
+
+    WorldChunk getCurrentlyLoading();
 }
