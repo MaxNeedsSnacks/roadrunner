@@ -27,8 +27,8 @@ public class RoadRunnerRuleConfig {
 
         this.addMixinRule("ai", true);
         this.addMixinRule("ai.goal", true);
-        this.addMixinRule("ai.nearby_entity_tracking", true);
-        this.addMixinRule("ai.nearby_entity_tracking.goals", true);
+        this.addMixinRule("ai.nearby_entity_tracking", false);
+        this.addMixinRule("ai.nearby_entity_tracking.goals", false);
         this.addMixinRule("ai.pathing", true);
         this.addMixinRule("ai.poi", true);
         this.addMixinRule("ai.poi.fast_init", true);
