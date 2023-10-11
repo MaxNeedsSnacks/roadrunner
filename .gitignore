@@ -3,6 +3,7 @@
 .gradle/
 build/
 out/
+logs/
 classes/
 custom.gradle
 
