@@ -32,7 +32,7 @@ public class RoadRunnerRuleConfig {
         this.addMixinRule("ai.pathing", true);
         this.addMixinRule("ai.poi", true);
         this.addMixinRule("ai.poi.fast_init", true);
-        this.addMixinRule("ai.poi.fast_retrieval", true);
+        this.addMixinRule("ai.poi.fast_retrieval", false);
         this.addMixinRule("ai.raid", true);
         this.addMixinRule("ai.task", true);
 
