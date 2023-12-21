@@ -7,6 +7,8 @@ import net.minecraft.block.entity.BlockEntityType;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
+import javax.annotation.Nullable;
+
 @Mixin(BlockEntity.class)
 public abstract class BlockEntityMixin implements SupportCache {
     @Shadow
@@ -15,15 +17,24 @@ public abstract class BlockEntityMixin implements SupportCache {
     @Shadow
     public abstract BlockEntityType<?> getType();
 
+    @Shadow
+    @Nullable
+    private BlockState cachedState;
+
     private BlockState supportTestState;
     private boolean supportTestResult;
 
     @Override
     public boolean isSupported() {
-        BlockState cachedState = this.getCachedState();
-        if (this.supportTestState == cachedState) {
+        BlockState state = this.cachedState;
+        if(state != null && this.supportTestState == state) {
             return this.supportTestResult;
         }
-        return this.supportTestResult = this.getType().supports((this.supportTestState = cachedState).getBlock());
+        return computeIsSupported();
+
+    }
+
+    private boolean computeIsSupported() {
+        return this.supportTestResult = this.getType().supports((this.supportTestState = this.getCachedState()).getBlock());
     }
 }
