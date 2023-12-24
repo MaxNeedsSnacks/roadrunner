@@ -56,7 +56,8 @@ jobs:
       - name: Set up JDK 16
         uses: actions/setup-java@v4
         with:
-          java-version: 16
+          distribution: 'temurin'
+          java-version: 17
       - name: Generate changelog
         if: github.event.inputs.prerelease == 'false'
         uses: FabricMC/fabric-action-scripts@v2
