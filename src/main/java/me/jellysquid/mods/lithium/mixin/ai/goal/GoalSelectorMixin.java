@@ -106,14 +106,21 @@ public abstract class GoalSelectorMixin {
      * Attempts to start all goals which are not-already running, can be started, and have their controls available.
      */
     private void startGoals() {
+        // The order of calls to goal methods here is important, as some can have side effects
+        // (at least in mods)
         for (PrioritizedGoal goal : this.goals) {
-            // Filter out goals which are already running or can't be started
-            if (goal.isRunning() || !goal.canStart()) {
+            // Filter out goals which are already running
+            if (goal.isRunning()) {
                 continue;
             }
 
             // Check if the goal's controls are available or can be replaced
             if (!this.areGoalControlsAvailable(goal)) {
+                continue;
+            }
+
+            // Check if the goal can start
+            if (!goal.canStart()) {
                 continue;
             }
 
