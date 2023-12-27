@@ -1,6 +1,4 @@
-<!-- TODO: Add Project icon 
-![Project icon](https://git-assets.jellysquid.me/hotlink-ok/lithium/icon-rounded-128px.png)
--->
+<img src="src/main/resources/icon.png" width="128">
 
 # Meep Meep!
 ![GitHub license](https://img.shields.io/github/license/MaxNeedsSnacks/meep-meep.svg)
@@ -16,9 +14,7 @@ This mod aims to optimise many areas of the game in order to provide better over
 
 ### Downloads
 
-You can currently find downloads for RoadRunner through our [GitHub releases page](https://github.com/MaxNeedsSnacks/roadrunner/releases). A release on CurseForge is currently ~~not?~~ planned, but will take some time as we want to make sure this mod works **without any major issues** on Forge before pushing an initial build.
-
-**That said, you have our express permission to include the GitHub releases builds of this mod in your CurseForge packs, and we will be asking to have those added to the approved non-CurseForge mods list, as well!**
+You can currently find downloads for RoadRunner through [CurseForge](https://legacy.curseforge.com/minecraft/mc-mods/roadrunner) or our [GitHub releases page](https://github.com/MaxNeedsSnacks/roadrunner/releases).
 
 ### Installation instructions
 

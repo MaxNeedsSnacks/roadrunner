@@ -5,7 +5,7 @@ issueTrackerURL = "https://github.com/MaxNeedsSnacks/roadrunner/issues"
 
 [[mods]]
 modId = "roadrunner"
-
+logoFile = "icon.png"
 version = "${version}"
 displayName = "RoadRunner"
 
