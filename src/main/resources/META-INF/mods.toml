@@ -7,7 +7,7 @@ issueTrackerURL = "https://github.com/MaxNeedsSnacks/roadrunner/issues"
 modId = "roadrunner"
 
 version = "${version}"
-displayName = "Meep Meep! (Road Runner)"
+displayName = "RoadRunner"
 
 description = '''
 An unofficial fork of the popular optimisation mod Lithium, made for the Forge mod loader.
