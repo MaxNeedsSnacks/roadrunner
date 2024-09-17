@@ -100,7 +100,7 @@ public abstract class DataTrackerMixin {
                 // Fall back to vanilla map if the array did not have the entry. This should only ever happen when
                 // racing between adding an entry and getting it.
                 //noinspection unchecked,SuspiciousMethodCalls
-                return (DataTracker.Entry<T>) this.entries.get(data);
+                return (DataTracker.Entry<T>) this.entries.get(id);
             }
 
             // This cast can fail if trying to access a entry which doesn't belong to this tracker, as the ID could
